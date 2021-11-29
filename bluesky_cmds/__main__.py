@@ -32,7 +32,7 @@ def launch(config_filepath):
         config_filepath = pathlib.Path(config_filepath)
     else:
         config_filepath = (
-            pathlib.Path(appdirs.user_config_dir("yaqc-cmds", "yaqc-cmds")) / "config.toml"
+            pathlib.Path(appdirs.user_config_dir("bluesky-cmds", "bluesky-cmds")) / "config.toml"
         )
 
     global window, config
@@ -47,7 +47,7 @@ def launch(config_filepath):
 @main.command(name="edit-config")
 def edit_config():
     config_filepath = (
-        pathlib.Path(appdirs.user_config_dir("yaqc-cmds", "yaqc-cmds")) / "config.toml"
+        pathlib.Path(appdirs.user_config_dir("bluesky-cmds", "bluesky-cmds")) / "config.toml"
     )
     config_filepath.parent.mkdir(parents=True, exist_ok=True)
     if not config_filepath.exists():

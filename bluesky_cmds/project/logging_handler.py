@@ -10,7 +10,7 @@ import appdirs
 
 from qtpy import QtCore
 
-from yaqc_cmds.project import project_globals as g
+from bluesky_cmds.project import project_globals as g
 
 app = g.app.read()
 
@@ -19,7 +19,7 @@ app = g.app.read()
 
 # filepath
 filepath = (
-    pathlib.Path(appdirs.user_log_dir("yaqc-cmds", "yaqc-cmds"))
+    pathlib.Path(appdirs.user_log_dir("bluesky-cmds", "bluesky-cmds"))
     / f"{str(time.strftime('%Y%m%dT%H%M%S%z'))}.log"
 )
 filepath.parent.mkdir(parents=True, exist_ok=True)
@@ -27,7 +27,7 @@ log_file = open(filepath, "w")
 log_file.close()
 
 # setup
-logger = logging.getLogger("Yaqc_cmds")
+logger = logging.getLogger("bluesky_cmds")
 formatter = logging.Formatter(
     fmt="%(asctime)s.%(msecs).03d | %(levelname)-8s | Thread %(thread)-5s | %(origin)-20s | %(name)-20s | %(message)s",
     datefmt="%Y-%m-%dT%H:%M:%S%z",

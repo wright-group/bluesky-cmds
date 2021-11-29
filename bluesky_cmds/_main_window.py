@@ -43,7 +43,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.config = config
         g.main_window.write(self)
         g.shutdown.write(self.shutdown)
-        self.setWindowTitle("yaqc-cmds %s" % __version__)
+        self.setWindowTitle("bluesky-cmds %s" % __version__)
         # set size, position
         self.window_verti_size = 600
         self.window_horiz_size = 1000
@@ -54,10 +54,10 @@ class MainWindow(QtWidgets.QMainWindow):
         # initialize program
         self._initialize_widgets()
         # populate self
-        self.data_folder = pathlib.Path.home() / "yaqc-cmds-data"
+        self.data_folder = pathlib.Path.home() / "bluesky-cmds-data"
         self.data_folder.mkdir(exist_ok=True)
         # somatic system
-        from yaqc_cmds.somatic import queue
+        from bluesky_cmds.somatic import queue
 
         self.queue_gui = queue.GUI(self.queue_widget, self.queue_message)
         # self.queue_gui.load_modules()
@@ -117,7 +117,7 @@ class MainWindow(QtWidgets.QMainWindow):
         if g.debug.read():
             print("initialize widgets")
         # import widgets
-        import yaqc_cmds._plot
+        import bluesky_cmds._plot
 
     def _shutdown(self):
         """

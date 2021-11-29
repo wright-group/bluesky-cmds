@@ -12,10 +12,10 @@ from bluesky_widgets.qt.zmq_dispatcher import RemoteDispatcher
 from bluesky_widgets.qt.threading import wait_for_workers_to_quit
 
 import WrightTools as wt
-import yaqc_cmds.project.project_globals as g
-import yaqc_cmds.project.widgets as pw
-import yaqc_cmds.project.classes as pc
-import yaqc_cmds.somatic as somatic
+import bluesky_cmds.project.project_globals as g
+import bluesky_cmds.project.widgets as pw
+import bluesky_cmds.project.classes as pc
+import bluesky_cmds.somatic as somatic
 
 from pprint import pprint
 

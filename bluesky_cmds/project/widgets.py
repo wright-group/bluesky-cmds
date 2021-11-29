@@ -8,7 +8,7 @@ from qtpy import QtWidgets, QtCore
 
 import pyqtgraph as pg
 
-from yaqc_cmds.project import project_globals as g
+from bluesky_cmds.project import project_globals as g
 
 colors = g.colors_dict.read()
 __here__ = pathlib.Path(__file__).parent

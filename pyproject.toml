@@ -3,11 +3,11 @@ requires = ["flit_core >=2,<4"]
 build-backend = "flit_core.buildapi"
 
 [tool.flit.metadata]
-module = "yaqc_cmds"
-dist-name = "yaqc-cmds"
+module = "bluesky_cmds"
+dist-name = "bluesky-cmds"
 author = "Blaise Thompson"
 author-email = "blaise@untzag.com"
-home-page = "https://github.com/wright-group/yaqc-cmds"
+home-page = "https://github.com/wright-group/bluesky-cmds"
 description-file = "README.md"
 classifiers = ["License :: OSI Approved :: MIT License"]
 requires-python = ">=3.7"
@@ -21,7 +21,7 @@ requires = ["appdirs",
 	    ]
 
 [tool.flit.scripts]
-yaqc-cmds = "yaqc_cmds.__main__:main"
+bluesky-cmds = "bluesky_cmds.__main__:main"
 
 [tool.black]
 line-length = 99

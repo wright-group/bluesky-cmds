@@ -24,7 +24,7 @@ class logger:  # must come before other globals
         pass
 
     def load(self):
-        import yaqc_cmds.project.logging_handler as logging_handler
+        import bluesky_cmds.project.logging_handler as logging_handler
 
         self.value = logging_handler.log
         if debug.read():

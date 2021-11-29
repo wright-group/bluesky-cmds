@@ -7,11 +7,11 @@ from qtpy import QtCore, QtWidgets
 
 from bluesky_queueserver.manager.comms import zmq_single_request
 
-import yaqc_cmds.project.project_globals as g
-import yaqc_cmds.project.classes as pc
-import yaqc_cmds.project.widgets as pw
+import bluesky_cmds.project.project_globals as g
+import bluesky_cmds.project.classes as pc
+import bluesky_cmds.project.widgets as pw
 
-import yaqc_cmds.somatic as somatic
+import bluesky_cmds.somatic as somatic
 
 from . import plan_ui
 
@@ -166,7 +166,7 @@ class GUI(QtCore.QObject):
                 {
                     "item": {"item_type": "instruction", "name": "queue_stop"},
                     "user_group": "admin",
-                    "user": "yaqc-cmds",
+                    "user": "bluesky-cmds",
                 },
             )
         )
@@ -203,7 +203,7 @@ class GUI(QtCore.QObject):
                     "kwargs": widget.kwargs,
                 },
                 "user_group": "admin",
-                "user": "yaqc-cmds",
+                "user": "bluesky-cmds",
             },
         )
 

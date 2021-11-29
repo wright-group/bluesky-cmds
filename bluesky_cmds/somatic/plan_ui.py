@@ -7,8 +7,8 @@ from qtpy import QtWidgets
 from bluesky_queueserver.manager.comms import zmq_single_request
 
 import WrightTools as wt
-from yaqc_cmds.project import widgets as pw
-from yaqc_cmds.project import classes as pc
+from bluesky_cmds.project import widgets as pw
+from bluesky_cmds.project import classes as pc
 
 devices_all = zmq_single_request("devices_allowed", {"user_group": "admin"})[0]["devices_allowed"]
 devices_movable = list(filter(lambda x: devices_all[x]["is_movable"], devices_all))
