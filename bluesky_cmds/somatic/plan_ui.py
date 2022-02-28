@@ -291,8 +291,10 @@ class ConstantWidget:
         self.frame.layout().addWidget(add_button)
         self.frame.layout().addWidget(remove_button)
 
-    def add_constant(self, hardware="d0", units="mm", terms=None):
+    def add_constant(self, hardware="d0", units="ps", terms=None):
         # TODO better default
+        if not hardware:
+            hardware = "d0"
         if terms is None:
             terms = [[1, "d1"]]
         const = Constant(hardware, units, terms)
@@ -440,8 +442,9 @@ class GridscanArgsWidget(GenericScanArgsWidget):
     def __init__(self):
         super().__init__(5)
 
-    def add_axis(self, hardware="d0", start=0, stop=1, npts=11, units="mm"):
-        # TODO better default
+    def add_axis(self, hardware=None, start=0, stop=1, npts=11, units="ps"):
+        if not hardware:
+            hardware = devices_movable[0]
         axis = GridscanAxis(hardware, start, stop, npts, units)
         self.axes.append(axis)
         self.axis_container_widget.layout().addWidget(axis)
@@ -476,8 +479,9 @@ class ScanArgsWidget(GenericScanArgsWidget):
     def __init__(self):
         super().__init__(4)
 
-    def add_axis(self, hardware="d0", start=0, stop=1, units="mm"):
-        # TODO better default
+    def add_axis(self, hardware=None, start=0, stop=1, units="ps"):
+        if not hardware:
+            hardware = devices_movable[0]
         axis = ScanAxis(hardware, start, stop, units)
         self.axes.append(axis)
         self.axis_container_widget.layout().addWidget(axis)
@@ -510,8 +514,9 @@ class ListscanArgsWidget(GenericScanArgsWidget):
     def __init__(self):
         super().__init__(3)
 
-    def add_axis(self, hardware="d0", list=[], units="mm"):
-        # TODO better default
+    def add_axis(self, hardware=None, list=[], units="ps"):
+        if not hardware:
+            hardware = devices_movable[0]
         axis = ListAxis(hardware, list, units)
         self.axes.append(axis)
         self.axis_container_widget.layout().addWidget(axis)

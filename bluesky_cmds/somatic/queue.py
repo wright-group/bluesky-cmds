@@ -193,6 +193,8 @@ class GUI(QtCore.QObject):
     def on_append_to_queue(self):
         plan_name = self.plan_combo.read()
         widget = self.plan_widgets[plan_name]
+        kwargs = widget.kwargs
+        meta = kwargs.pop("md", {})
         zmq_single_request(
             "queue_item_add",
             {
@@ -200,7 +202,8 @@ class GUI(QtCore.QObject):
                     "item_type": "plan",
                     "name": plan_name,
                     "args": widget.args,
-                    "kwargs": widget.kwargs,
+                    "kwargs": kwargs,
+                    "meta": meta,
                 },
                 "user_group": "admin",
                 "user": "bluesky-cmds",
