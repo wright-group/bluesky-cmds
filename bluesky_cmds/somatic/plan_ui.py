@@ -291,10 +291,10 @@ class ConstantWidget:
         self.frame.layout().addWidget(add_button)
         self.frame.layout().addWidget(remove_button)
 
-    def add_constant(self, hardware="d0", units="ps", terms=None):
+    def add_constant(self, hardware=None, units="ps", terms=None):
         # TODO better default
         if not hardware:
-            hardware = "d0"
+            hardware = devices_movable[0]
         if terms is None:
             terms = [[1, "d1"]]
         const = Constant(hardware, units, terms)
