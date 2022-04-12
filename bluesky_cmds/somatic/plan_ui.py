@@ -484,6 +484,7 @@ class ScanAxis(pw.InputTable):
         self.hardware = pc.Combo(devices_movable)
         self.hardware.write(hardware)
         self.add("Hardware", self.hardware)
+        self.hardware.updated.connect(self.on_hardware_updated)
         self.start = pc.Number(start)
         self.add("Start", self.start)
         self.stop = pc.Number(stop)
@@ -491,15 +492,27 @@ class ScanAxis(pw.InputTable):
         self.units = pc.Combo(wt.units.blessed_units)
         self.units.write(units)
         self.add("Units", self.units)
+        self.on_hardware_updated()
 
     @property
     def args(self):
+        units = self.units.read()
+        if units == "None":
+            units = None
         return [
             self.hardware.read(),
             self.start.read(),
             self.stop.read(),
-            self.units.read(),
+            units,
         ]
+
+
+    def on_hardware_updated(self):
+        hw_name = self.hardware.read()
+        base_name = hw_name.split(".")[0]
+        key_name = hw_name.replace(".", "_")
+        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
+        self.units.set_allowed_values((native,) + wt.units.get_valid_conversions(native))
 
 
 class ScanArgsWidget(GenericScanArgsWidget):
@@ -521,20 +534,33 @@ class ListAxis(pw.InputTable):
         self.hardware = pc.Combo(devices_movable)
         self.hardware.write(hardware)
         self.add("Hardware", self.hardware)
+        self.hardware.updated.connect(self.on_hardware_updated)
         self.list = pc.String()
         self.list.write(json.dumps(list) or "[]")
         self.add("List", self.list)
         self.units = pc.Combo(wt.units.blessed_units)
         self.units.write(units)
         self.add("Units", self.units)
+        self.on_hardware_updated()
 
     @property
     def args(self):
+        units = self.units.read()
+        if units == "None":
+            units = None
         return [
             self.hardware.read(),
             json.loads(self.list.read()) or [],
-            self.units.read(),
+            units,
         ]
+
+
+    def on_hardware_updated(self):
+        hw_name = self.hardware.read()
+        base_name = hw_name.split(".")[0]
+        key_name = hw_name.replace(".", "_")
+        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
+        self.units.set_allowed_values((native,) + wt.units.get_valid_conversions(native))
 
 
 class ListscanArgsWidget(GenericScanArgsWidget):
