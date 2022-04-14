@@ -5,12 +5,27 @@ import json
 import toolz
 from qtpy import QtWidgets
 from bluesky_queueserver.manager.comms import zmq_single_request
+from bluesky_hwproxy import zmq_single_request as hwproxy_request
 
 import WrightTools as wt
 from bluesky_cmds.project import widgets as pw
 from bluesky_cmds.project import classes as pc
 
-devices_all = zmq_single_request("devices_allowed", {"user_group": "admin"})[0]["devices_allowed"]
+devices_all_json = zmq_single_request("devices_allowed", {"user_group": "admin"})[0]["devices_allowed"]
+devices_all = {}
+
+
+def get_all_components(k, v):
+    out = {k: v}
+    for sk, sv in v.get("components", {}).items():
+        out.update(get_all_components(".".join([k, sk]), sv))
+    return out
+
+
+for k, v in devices_all_json.items():
+    devices_all.update(get_all_components(k, v))
+
+
 devices_movable = list(filter(lambda x: devices_all[x]["is_movable"], devices_all))
 devices_not_movable = list(filter(lambda x: not devices_all[x]["is_movable"], devices_all))
 
@@ -416,6 +431,7 @@ class GridscanAxis(pw.InputTable):
         self.add("Axis", None)
         self.hardware = pc.Combo(devices_movable)
         self.hardware.write(hardware)
+        self.hardware.updated.connect(self.on_hardware_updated)
         self.add("Hardware", self.hardware)
         self.start = pc.Number(start)
         self.add("Start", self.start)
@@ -426,16 +442,27 @@ class GridscanAxis(pw.InputTable):
         self.units = pc.Combo(wt.units.blessed_units)
         self.units.write(units)
         self.add("Units", self.units)
+        self.on_hardware_updated()
 
     @property
     def args(self):
+        units = self.units.read()
+        if units == "None":
+            units = None
         return [
             self.hardware.read(),
             self.start.read(),
             self.stop.read(),
             int(self.npts.read()),
-            self.units.read(),
+            units,
         ]
+
+    def on_hardware_updated(self):
+        hw_name = self.hardware.read()
+        base_name = hw_name.split(".")[0]
+        key_name = hw_name.replace(".", "_")
+        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
+        self.units.set_allowed_values((native,) + wt.units.get_valid_conversions(native))
 
 
 class GridscanArgsWidget(GenericScanArgsWidget):
@@ -457,6 +484,7 @@ class ScanAxis(pw.InputTable):
         self.hardware = pc.Combo(devices_movable)
         self.hardware.write(hardware)
         self.add("Hardware", self.hardware)
+        self.hardware.updated.connect(self.on_hardware_updated)
         self.start = pc.Number(start)
         self.add("Start", self.start)
         self.stop = pc.Number(stop)
@@ -464,15 +492,27 @@ class ScanAxis(pw.InputTable):
         self.units = pc.Combo(wt.units.blessed_units)
         self.units.write(units)
         self.add("Units", self.units)
+        self.on_hardware_updated()
 
     @property
     def args(self):
+        units = self.units.read()
+        if units == "None":
+            units = None
         return [
             self.hardware.read(),
             self.start.read(),
             self.stop.read(),
-            self.units.read(),
+            units,
         ]
+
+
+    def on_hardware_updated(self):
+        hw_name = self.hardware.read()
+        base_name = hw_name.split(".")[0]
+        key_name = hw_name.replace(".", "_")
+        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
+        self.units.set_allowed_values((native,) + wt.units.get_valid_conversions(native))
 
 
 class ScanArgsWidget(GenericScanArgsWidget):
@@ -494,20 +534,33 @@ class ListAxis(pw.InputTable):
         self.hardware = pc.Combo(devices_movable)
         self.hardware.write(hardware)
         self.add("Hardware", self.hardware)
+        self.hardware.updated.connect(self.on_hardware_updated)
         self.list = pc.String()
         self.list.write(json.dumps(list) or "[]")
         self.add("List", self.list)
         self.units = pc.Combo(wt.units.blessed_units)
         self.units.write(units)
         self.add("Units", self.units)
+        self.on_hardware_updated()
 
     @property
     def args(self):
+        units = self.units.read()
+        if units == "None":
+            units = None
         return [
             self.hardware.read(),
             json.loads(self.list.read()) or [],
-            self.units.read(),
+            units,
         ]
+
+
+    def on_hardware_updated(self):
+        hw_name = self.hardware.read()
+        base_name = hw_name.split(".")[0]
+        key_name = hw_name.replace(".", "_")
+        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
+        self.units.set_allowed_values((native,) + wt.units.get_valid_conversions(native))
 
 
 class ListscanArgsWidget(GenericScanArgsWidget):
@@ -532,7 +585,7 @@ class OpaMotorSelectorWidget(EnumWidget):
     def __init__(self, name="motor"):
         motors = {
             x: x
-            for x in filter(lambda x: x.startswith("w1_") or x.startswith("w2_"), devices_movable)
+            for x in filter(lambda x: x.startswith("w1.") or x.startswith("w2."), devices_movable)
         }
         super().__init__(name, options=motors)
         # TODO dynamically fill out options, mutual exclusion
