@@ -361,7 +361,10 @@ class Constant(pw.InputTable):
 
     @property
     def args(self):
-        return [self.hardware.read(), self.units.read(), self.terms]
+        units = self.units.read()
+        if units == "None":
+            units = None
+        return [self.hardware.read(), units, self.terms]
 
     @property
     def terms(self):
@@ -369,7 +372,14 @@ class Constant(pw.InputTable):
 
         expr = sympy.parse_expr(self.expression.read())
         coeffs = expr.as_coefficients_dict()
-        return [[float(coeff), i.name if i != 1 else None] for i, coeff in coeffs.items()]
+
+        for k, v in list(coeffs.items()):
+            del coeffs[k]
+            if isisntance(k, sympy.Number):
+                coeffs[None] = float(k*v)
+            else:
+                coeffs[k.name] = float(v)
+        return list(coeffs.items())
 
 
 class GenericScanArgsWidget:
@@ -587,6 +597,8 @@ class OpaMotorSelectorWidget(EnumWidget):
             x: x
             for x in filter(lambda x: x.startswith("w1.") or x.startswith("w2."), devices_movable)
         }
+        if not motors:
+            motors = {"None": None}
         super().__init__(name, options=motors)
         # TODO dynamically fill out options, mutual exclusion
 
