@@ -225,7 +225,6 @@ class PlotCallback(CallbackBase):
             # Default if the hints are not given
             self.dimensions = ["time"]
             self.all_dimensions = ["time"]
-        self.dimensions.append("wa_wavelengths")
         gui.axis.set_allowed_values(self.dimensions)
 
         if self.start_doc.get("shape"):
@@ -246,6 +245,10 @@ class PlotCallback(CallbackBase):
         #pprint(doc)
         self.descriptor_doc = doc
         super().descriptor(doc)
+
+        
+        self.dimensions.extend([dim for dim, val in  self.descriptor_doc.get("data_keys", {}).items() if val.get("independent")])
+        gui.axis.set_allowed_values(self.dimensions)
         self.units_map = {
             dim: self.descriptor_doc.get("data_keys", {}).get(dim, {}).get("units")
             for dim in self.dimensions
