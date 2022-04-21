@@ -93,6 +93,7 @@ class progress_bar:
 
     def begin_new_scan_timer(self):
         self.start_time = time.time()
+        self.set_fraction(0)
 
     def set_fraction(self, fraction):
         self.value.setValue(fraction * 100)
@@ -109,6 +110,13 @@ class progress_bar:
             m, s = divmod(time_remaining, 60)
             h, m = divmod(m, 60)
             self.time_remaining.setText("%02d:%02d:%02d" % (h, m, s))
+
+    def set_color(self, color):
+        from .style import colors
+        self.value.setStyleSheet(f"""
+        QProgressBar:horizontal{{border: 0px solid gray; border-radius: 0px; background: {colors["background"]}; padding: 0px; height: 30px;}}
+        QProgressBar:chunk{{background:{colors[color]} }}
+        """)
 
 
 progress_bar = progress_bar()

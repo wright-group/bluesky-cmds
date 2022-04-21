@@ -211,12 +211,13 @@ class PlotCallback(CallbackBase):
         self.start_doc = doc
         super().start(doc)
         self.progress_bar.begin_new_scan_timer()
+        self.progress_bar.set_color("go")
         self.expected_events = doc.get("num_points", -1)
         # Set X-axis to last dimension as available options, first one as default
         # Currently assuming only one stream, because otherwise too complicated for MVP
         if self.start_doc.get("hints", {}).get("dimensions"):
             # Get the list of hinted dimension fields for the last (scanned) dimension
-            self.dimensions = self.start_doc["hints"]["dimensions"][-1][0]
+            self.dimensions = list(self.start_doc["hints"]["dimensions"][-1][0])
             self.all_dimensions = list(
                 itertools.chain(*[dim[0] for dim in self.start_doc["hints"]["dimensions"]])
             )
@@ -242,7 +243,7 @@ class PlotCallback(CallbackBase):
         # A more full representation would account for multiple descriptors
         if doc["name"] != "primary":
             return
-        pprint(doc)
+        #pprint(doc)
         self.descriptor_doc = doc
         super().descriptor(doc)
         self.units_map = {
@@ -273,9 +274,12 @@ class PlotCallback(CallbackBase):
 
         somatic.signals.update_plot.emit()
 
-    def end(self, doc):
-        super().end(doc)
-        self.progress_bar.set_fraction(1)
+    def stop(self, doc):
+        super().stop(doc)
+        #self.progress_bar.set_fraction(1)
+        pprint(doc)
+        if doc["exit_status"] != "success":
+            self.progress_bar.set_color("stop")
 
 
 # TODO config rather than hardcode address
