@@ -32,6 +32,9 @@ class GUI(QtCore.QObject):
         self.interrupt_choice_window = pw.ChoiceWindow(
             "QUEUE INTERRUPTED", button_labels=["RESUME", "STOP AFTER PLAN", "STOP NOW"]
         )
+        self.clear_choice_window = pw.ChoiceWindow(
+            "QUEUE CLEAR", button_labels=["no", "YES"]
+        )
         # queue
         self.queue = []
         self.history = []
@@ -227,10 +230,16 @@ class GUI(QtCore.QObject):
         # TODO Recover skip behavior... may require upstream change to be sane
 
     def on_clear_clicked(self):
-        zmq_single_request("queue_clear")
+        self.clear_choice_window.set_text("Do you want to clear the queue?")
+        index = self.clear_choice_window.show()
+        if index == 1:
+            zmq_single_request("queue_clear")
 
     def on_clear_history_clicked(self):
-        zmq_single_request("history_clear")
+        self.clear_choice_window.set_text("Do you want to clear the history?")
+        index = self.clear_choice_window.show()
+        if index == 1:
+            zmq_single_request("history_clear")
 
     def on_index_changed(self, row, new_index):
         item = self.queue[row]
