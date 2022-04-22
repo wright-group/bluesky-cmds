@@ -1,10 +1,6 @@
 #! /usr/bin/env python
 ### ensure folders exist ######################################################
 
-import matplotlib
-
-matplotlib.use("ps")  # important - images will be generated in worker threads
-
 import sys
 from qtpy import QtWidgets, QtCore
 

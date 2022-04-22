@@ -42,6 +42,7 @@ def launch(config_filepath):
     window.show()
     window.showMaximized()
     app.exec_()
+    window._shutdown()
 
 
 @main.command(name="edit-config")

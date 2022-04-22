@@ -349,6 +349,7 @@ class Constant(pw.InputTable):
         self.add("Constant", None)
         self.hardware = pc.Combo(devices_movable)
         self.hardware.write(hardware)
+        self.hardware.updated.connect(self.on_hardware_updated)
         self.add("Hardware", self.hardware)
         self.units = pc.Combo(wt.units.blessed_units)
         self.units.write(units)
@@ -358,6 +359,7 @@ class Constant(pw.InputTable):
             " + ".join(f"{coeff}*{hw}" if hw else f"{coeff}" for coeff, hw in terms)
         )
         self.add("Expression", self.expression)
+        self.on_hardware_updated()
 
     @property
     def args(self):
@@ -381,6 +383,13 @@ class Constant(pw.InputTable):
                 coeffs[k.name] = float(v)
         return list(coeffs.items())
 
+    def on_hardware_updated(self):
+        hw_name = self.hardware.read()
+        base_name = hw_name.split(".")[0]
+        key_name = hw_name.replace(".", "_")
+        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
+        units_list = [i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"]
+        self.units.set_allowed_values(units_list)
 
 class GenericScanArgsWidget:
     def __init__(self, partition):
@@ -472,7 +481,8 @@ class GridscanAxis(pw.InputTable):
         base_name = hw_name.split(".")[0]
         key_name = hw_name.replace(".", "_")
         native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
-        self.units.set_allowed_values((native,) + wt.units.get_valid_conversions(native))
+        units_list = [i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"]
+        self.units.set_allowed_values(units_list)
 
 
 class GridscanArgsWidget(GenericScanArgsWidget):
@@ -522,7 +532,8 @@ class ScanAxis(pw.InputTable):
         base_name = hw_name.split(".")[0]
         key_name = hw_name.replace(".", "_")
         native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
-        self.units.set_allowed_values((native,) + wt.units.get_valid_conversions(native))
+        units_list = [i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"]
+        self.units.set_allowed_values(units_list)
 
 
 class ScanArgsWidget(GenericScanArgsWidget):
@@ -570,7 +581,8 @@ class ListAxis(pw.InputTable):
         base_name = hw_name.split(".")[0]
         key_name = hw_name.replace(".", "_")
         native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
-        self.units.set_allowed_values((native,) + wt.units.get_valid_conversions(native))
+        units_list = [i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"]
+        self.units.set_allowed_values(units_list)
 
 
 class ListscanArgsWidget(GenericScanArgsWidget):
