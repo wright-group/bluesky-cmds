@@ -381,7 +381,7 @@ class Constant(pw.InputTable):
                 coeffs[None] = float(k*v)
             else:
                 coeffs[k.name] = float(v)
-        return list(coeffs.items())
+        return [(v, k) for k, v in coeffs.items()]
 
     def on_hardware_updated(self):
         hw_name = self.hardware.read()
