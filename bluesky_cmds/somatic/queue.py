@@ -251,8 +251,10 @@ class GUI(QtCore.QObject):
 
     def on_load_item(self, item):
         self.plan_combo.write(item["name"])
+        kwargs = item.get("kwargs", {})
+        kwargs["md"] = item.get("meta", {})
         self.plan_widgets[item["name"]].args = item.get("args", [])
-        self.plan_widgets[item["name"]].kwargs = item.get("kwargs", [])
+        self.plan_widgets[item["name"]].kwargs = kwargs
 
     def update_type(self):
         for frame in self.type_frames.values():
@@ -291,7 +293,7 @@ class GUI(QtCore.QObject):
             label.setContentsMargins(3, 3, 3, 3)
             self.table.setCellWidget(table_index, 1, label)
             # status
-            label = pw.Label(item.get("result", {}).get("exit_status", status))
+            label = pw.Label(status or item.get("result", {}).get("exit_status"))
             label.setAlignment(QtCore.Qt.AlignCenter)
             label.setContentsMargins(3, 3, 3, 3)
             self.table.setCellWidget(table_index, 2, label)

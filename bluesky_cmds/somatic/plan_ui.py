@@ -80,12 +80,13 @@ class PlanUI:
 
     def load(self, *args, **kwargs):
         for x in self.items:
-            if x.nargs < 0:
-                x.args = args
-                args = []
-            elif x.nargs > 0:
-                x.args = args[: x.nargs]
-                args = args[x.nargs :]
+            if args:
+                if x.nargs < 0:
+                    x.args = args
+                    args = []
+                elif x.nargs > 0:
+                    x.args = args[: x.nargs]
+                    args = args[x.nargs :]
             x.kwargs = kwargs
 
 
@@ -222,10 +223,20 @@ class IntWidget(SingleWidget):
     @property
     def args(self):
         return [int(self.input.read())] if not self.kwarg else []
+    
+    @args.setter
+    def args(self, arg):
+        if arg:
+            self.input.write(arg[0])
 
     @property
     def kwargs(self):
         return {self.kwarg: int(self.input.read())} if self.kwarg else {}
+
+    @kwargs.setter
+    def kwargs(self, kwargs):
+        if self.kwarg in kwargs:
+            self.args = [kwargs[self.kwarg]]
 
 
 class FloatWidget(SingleWidget):
@@ -247,11 +258,19 @@ class EnumWidget(SingleWidget):
     @args.setter
     def args(self, arg):
         if arg:
-            self.input.write(next([k for k, v in self.options.items() if arg == v]))
+            for k, v in self.options.items():
+                if arg == v:
+                    self.input.write(k)
+                    break
 
     @property
     def kwargs(self):
         return {self.kwarg: self.options[self.input.read()]} if self.kwarg else {}
+
+    @kwargs.setter
+    def kwargs(self, kwargs):
+        if self.kwarg in kwargs:
+            self.args = [kwargs[self.kwarg]]
 
 
 class DeviceListWidget:
