@@ -96,7 +96,7 @@ class progress_bar:
         self.set_fraction(0)
 
     def set_fraction(self, fraction):
-        self.value.setValue(fraction * 100)
+        self.value.setValue(int(round(fraction * 100)))
         # time elapsed
         time_elapsed = time.time() - self.start_time
         m, s = divmod(time_elapsed, 60)

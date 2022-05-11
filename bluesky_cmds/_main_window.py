@@ -98,7 +98,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs = pw.TabWidget()
         self.tabs.addTab(self.queue_widget, "Queue")
         self.tabs.addTab(self.plot_widget, "Plot")
-        self.tabs.setContentsMargins(0.0, 0.0, 0.0, 0.0)
+        #self.tabs.setContentsMargins(0.0, 0.0, 0.0, 0.0)
         box.addWidget(self.tabs)
         # vertical stretch
         box.addStretch(1)

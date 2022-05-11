@@ -212,6 +212,14 @@ class GUI(QtCore.QObject):
                 "user": "bluesky-cmds",
             },
         )
+        from pprint import pprint
+        pprint({
+                    "item_type": "plan",
+                    "name": plan_name,
+                    "args": widget.args,
+                    "kwargs": kwargs,
+                    "meta": meta,
+                    })
 
     def on_queue_start_clicked(self):
         zmq_single_request("queue_start")
