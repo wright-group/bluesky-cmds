@@ -26,6 +26,15 @@ def get_all_components(k, v):
         out.update(get_all_components(".".join([k, sk]), sv))
     return out
 
+def get_units(device):
+    if "." in device:
+        base_name = device.split(".")[0]
+        key_name = device.replace(".", "_")
+    else:
+        base_name = key_name = device
+    return hwproxy_request("describe", {"device": base_name})[0]["return"].get(key_name, {}).get(
+        "units", None
+    )
 
 for k, v in devices_all_json.items():
     devices_all.update(get_all_components(k, v))
@@ -419,11 +428,7 @@ class Constant(pw.InputTable):
 
     def on_hardware_updated(self):
         hw_name = self.hardware.read()
-        base_name = hw_name.split(".")[0]
-        key_name = hw_name.replace(".", "_")
-        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get(
-            "units", None
-        )
+        native = get_units(hw_name)
         units_list = [
             i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"
         ]
@@ -571,11 +576,7 @@ class ScanAxis(pw.InputTable):
 
     def on_hardware_updated(self):
         hw_name = self.hardware.read()
-        base_name = hw_name.split(".")[0]
-        key_name = hw_name.replace(".", "_")
-        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get(
-            "units", None
-        )
+        native = get_units(hw_name)
         units_list = [
             i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"
         ]
@@ -623,11 +624,7 @@ class ListAxis(pw.InputTable):
 
     def on_hardware_updated(self):
         hw_name = self.hardware.read()
-        base_name = hw_name.split(".")[0]
-        key_name = hw_name.replace(".", "_")
-        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get(
-            "units", None
-        )
+        native = get_units(hw_name)
         units_list = [
             i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"
         ]
@@ -648,7 +645,7 @@ class ListscanArgsWidget(GenericScanArgsWidget):
 
 class OpaSelectorWidget(EnumWidget):
     def __init__(self, name="opa"):
-        super().__init__(name, options={x:x for x in devices_with_deps})
+        super().__init__(name, options={x:x for x in devices_with_deps if len(devices_all_json.get(x, {}).get("components", {})) > 1})
 
 
 class OpaMotorSelectorWidget(EnumWidget):
@@ -693,7 +690,11 @@ class SpectrometerWidget(pw.InputTable):
         self.name = name
         self.frame = self
         self.add("Spectrometer", None)
-        self.device = pc.Combo(["None"] + devices_movable)
+        spec_devices = []
+        for dev in devices_all_json:
+            if dev not in devices_with_deps and wt.units.is_valid_conversion(get_units(dev), "nm"):
+                spec_devices.append(dev)
+        self.device = pc.Combo(["None"] + spec_devices)
         self.add("Device", self.device)
         self.method = pc.Combo(["none", "static", "zero", "track", "scan"])
         self.add("Method", self.method)
