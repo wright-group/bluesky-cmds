@@ -668,11 +668,48 @@ class OpaMotorSelectorWidget(EnumWidget):
             motors = {"None": None}
         self.options = motors
 
+class OpaMotorAxis(pw.InputTable):
+    def __init__(self, motor, method, center, width, npts, opa_selector):
+        super().__init__()
+        self.opa_selector = opa_selector
+        if motor is None:
+            motor = list(devices_all_json[self.opa_selector.args[0]]["components"].keys())[0]
+        self.add("Motor Axis", None)
+        self.motor = pc.Combo(devices_all_json[self.opa_selector.args[0]]["components"].keys())
+        self.motor.write(motor)
+        self.add("Motor", self.motor)
+        self.center = pc.Number(center)
+        self.add("Center", self.center)
+        self.width = pc.Number(width)
+        self.add("Width", self.width)
+        self.npts = pc.Number(npts, decimals=0)
+        self.add("npts", self.npts)
 
-class OpaMotorFullWidget:
-    def __init__(self):
-        self.frame = QtWidgets.QWidget()
-        self.frame.setLayout(QtWidgets.QVBoxLayout())
+        self.opa_selector.input.updated.connect(self.on_opa_updated)
+
+    @property
+    def kwargs(self):
+        # TODO 'static' method does not work so I don't give it a gui element yet -- 2022-05-16 KFS
+        return {"method": "scan", "center": self.center.read(), "width": self.width.read(), "npts": int(self.npts.read())}
+
+    def on_opa_updated(self):
+        self.motor.set_allowed_values(devices_all_json[self.opa_selector.args[0]]["components"].keys())
+
+
+
+class OpaMotorFullWidget(GenericScanArgsWidget):
+    def __init__(self, opa_selector):
+        self.opa_selector = opa_selector
+        super().__init__(None)
+        self.nargs = 0
+        self.kwarg = "motors"
+
+    def add_axis(self, motor=None, method="scan", center=0, width=1, npts=11):
+        if not motor:
+            motor = devices_movable[0]
+        axis = OpaMotorAxis(motor, method, center, width, npts, opa_selector=self.opa_selector)
+        self.axes.append(axis)
+        self.axis_container_widget.layout().addWidget(axis)
 
     @property
     def args(self):
@@ -680,7 +717,17 @@ class OpaMotorFullWidget:
 
     @property
     def kwargs(self):
-        return {}
+        return {"motors":{a.motor.read(): a.kwargs for a in self.axes}}
+
+    @kwargs.setter
+    def kwargs(self, value):
+        while self.axes:
+            self.remove_axis()
+        if "motors" in value:
+            for mot, params in value["motors"].items():
+                self.add_axis(motor=mot, **params)
+
+
 
 
 class SpectrometerWidget(pw.InputTable):
@@ -727,7 +774,7 @@ class SpectrometerWidget(pw.InputTable):
         device = self.device.read()
         method = self.method.read()
         if device == "None" or method == "none":
-            device = None
+            return {self.name: None}
         out = {
             k: v
             for k, v in {
@@ -841,33 +888,36 @@ plan_ui_lookup["run_tune_test"] = PlanUI(
         SpectrometerWidget(include_center=False),
     ]
 )
+opa=OpaSelectorWidget()
 plan_ui_lookup["run_setpoint"] = PlanUI(
     [
         MetadataWidget(),
         DeviceListWidget(),
-        opa := OpaSelectorWidget(),
+        opa,
         OpaMotorSelectorWidget(opa_selector=opa),
         FloatWidget("Width", "width", 1),
         IntWidget("Npts", "npts", 11),
         SpectrometerWidget(include_center=False),
     ]
 )
+opa=OpaSelectorWidget()
 plan_ui_lookup["run_intensity"] = PlanUI(
     [
         MetadataWidget(),
         DeviceListWidget(),
-        opa :=  OpaSelectorWidget(),
+        opa,
         OpaMotorSelectorWidget(opa_selector=opa),
         FloatWidget("Width", "width", 1),
         IntWidget("Npts", "npts", 11),
         SpectrometerWidget(include_center=False),
     ]
 )
+opa=OpaSelectorWidget()
 plan_ui_lookup["run_holistic"] = PlanUI(
     [
         MetadataWidget(),
         DeviceListWidget(),
-        opa := OpaSelectorWidget(),
+        opa,
         OpaMotorSelectorWidget(opa_selector=opa),
         OpaMotorSelectorWidget(opa_selector=opa),
         FloatWidget("Width", "width", 1),
@@ -875,12 +925,14 @@ plan_ui_lookup["run_holistic"] = PlanUI(
         SpectrometerWidget(include_center=False),
     ]
 )
+opa=OpaSelectorWidget()
 plan_ui_lookup["motortune"] = PlanUI(
     [
         MetadataWidget(),
         DeviceListWidget(),
-        opa:=OpaSelectorWidget(),
-        OpaMotorFullWidget(),
+        opa,
+        BoolWidget("Use Tune Points", "use_tune_points"),
+        OpaMotorFullWidget(opa_selector=opa),
         SpectrometerWidget(),
     ]
 )
