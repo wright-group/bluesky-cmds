@@ -11,8 +11,13 @@ import WrightTools as wt
 from bluesky_cmds.project import widgets as pw
 from bluesky_cmds.project import classes as pc
 
-devices_all_json = zmq_single_request("devices_allowed", {"user_group": "admin"})[0]["devices_allowed"]
+devices_all_json = zmq_single_request("devices_allowed", {"user_group": "admin"})[0][
+    "devices_allowed"
+]
 devices_all = {}
+
+from pprint import pprint
+pprint(devices_all_json)
 
 
 def get_all_components(k, v):
@@ -21,6 +26,15 @@ def get_all_components(k, v):
         out.update(get_all_components(".".join([k, sk]), sv))
     return out
 
+def get_units(device):
+    if "." in device:
+        base_name = device.split(".")[0]
+        key_name = device.replace(".", "_")
+    else:
+        base_name = key_name = device
+    return hwproxy_request("describe", {"device": base_name})[0]["return"].get(key_name, {}).get(
+        "units", None
+    )
 
 for k, v in devices_all_json.items():
     devices_all.update(get_all_components(k, v))
@@ -28,6 +42,7 @@ for k, v in devices_all_json.items():
 
 devices_movable = list(filter(lambda x: devices_all[x]["is_movable"], devices_all))
 devices_not_movable = list(filter(lambda x: not devices_all[x]["is_movable"], devices_all))
+devices_with_deps = list(filter(lambda x: "components" in devices_all[x], devices_all))
 
 
 class PlanUI:
@@ -223,7 +238,7 @@ class IntWidget(SingleWidget):
     @property
     def args(self):
         return [int(self.input.read())] if not self.kwarg else []
-    
+
     @args.setter
     def args(self, arg):
         if arg:
@@ -249,7 +264,16 @@ class EnumWidget(SingleWidget):
     def __init__(self, name, options: dict, kwarg=None):
         self.input = pc.Combo(options.keys())
         super().__init__(name, kwarg)
-        self.options = options
+        self._options = options
+
+    @property
+    def options(self):
+        return self._options
+
+    @options.setter
+    def options(self, value):
+        self.input.set_allowed_values(value.keys())
+        self._options = value
 
     @property
     def args(self):
@@ -397,18 +421,19 @@ class Constant(pw.InputTable):
         for k, v in list(coeffs.items()):
             del coeffs[k]
             if isinstance(k, sympy.Number):
-                coeffs[None] = float(k*v)
+                coeffs[None] = float(k * v)
             else:
                 coeffs[k.name] = float(v)
         return [(v, k) for k, v in coeffs.items()]
 
     def on_hardware_updated(self):
         hw_name = self.hardware.read()
-        base_name = hw_name.split(".")[0]
-        key_name = hw_name.replace(".", "_")
-        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
-        units_list = [i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"]
+        native = get_units(hw_name)
+        units_list = [
+            i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"
+        ]
         self.units.set_allowed_values(units_list)
+
 
 class GenericScanArgsWidget:
     def __init__(self, partition):
@@ -499,8 +524,12 @@ class GridscanAxis(pw.InputTable):
         hw_name = self.hardware.read()
         base_name = hw_name.split(".")[0]
         key_name = hw_name.replace(".", "_")
-        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
-        units_list = [i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"]
+        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get(
+            "units", None
+        )
+        units_list = [
+            i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"
+        ]
         self.units.set_allowed_values(units_list)
 
 
@@ -545,13 +574,12 @@ class ScanAxis(pw.InputTable):
             units,
         ]
 
-
     def on_hardware_updated(self):
         hw_name = self.hardware.read()
-        base_name = hw_name.split(".")[0]
-        key_name = hw_name.replace(".", "_")
-        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
-        units_list = [i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"]
+        native = get_units(hw_name)
+        units_list = [
+            i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"
+        ]
         self.units.set_allowed_values(units_list)
 
 
@@ -594,13 +622,12 @@ class ListAxis(pw.InputTable):
             units,
         ]
 
-
     def on_hardware_updated(self):
         hw_name = self.hardware.read()
-        base_name = hw_name.split(".")[0]
-        key_name = hw_name.replace(".", "_")
-        native = hwproxy_request("describe", {"device": base_name})[0]["return"][key_name].get("units", None)
-        units_list = [i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"]
+        native = get_units(hw_name)
+        units_list = [
+            i for i in (native,) + wt.units.get_valid_conversions(native) if i != "mm_delay"
+        ]
         self.units.set_allowed_values(units_list)
 
 
@@ -618,26 +645,71 @@ class ListscanArgsWidget(GenericScanArgsWidget):
 
 class OpaSelectorWidget(EnumWidget):
     def __init__(self, name="opa"):
-        super().__init__(name, options={"w1": "w1", "w2": "w2"})
-        # TODO dynamically fill out options
+        super().__init__(name, options={x:x for x in devices_with_deps if len(devices_all_json.get(x, {}).get("components", {})) > 1})
 
 
 class OpaMotorSelectorWidget(EnumWidget):
-    def __init__(self, name="motor"):
+    def __init__(self, name="motor", opa_selector=None):
+        if opa_selector is None:
+            raise ValueError("Must specify associated opa selector")
+        self.opa_selector = opa_selector
+        super().__init__(name, options={"None": None})
+        self.on_opa_selected()
+        self.opa_selector.input.updated.connect(self.on_opa_selected)
+        # TODO mutual exclusion
+
+
+    def on_opa_selected(self):
         motors = {
             x: x
-            for x in filter(lambda x: x.startswith("w1.") or x.startswith("w2."), devices_movable)
+            for x in devices_all_json[self.opa_selector.args[0]]["components"]
         }
         if not motors:
             motors = {"None": None}
-        super().__init__(name, options=motors)
-        # TODO dynamically fill out options, mutual exclusion
+        self.options = motors
+
+class OpaMotorAxis(pw.InputTable):
+    def __init__(self, motor, method, center, width, npts, opa_selector):
+        super().__init__()
+        self.opa_selector = opa_selector
+        if motor is None:
+            motor = list(devices_all_json[self.opa_selector.args[0]]["components"].keys())[0]
+        self.add("Motor Axis", None)
+        self.motor = pc.Combo(devices_all_json[self.opa_selector.args[0]]["components"].keys())
+        self.motor.write(motor)
+        self.add("Motor", self.motor)
+        self.center = pc.Number(center)
+        self.add("Center", self.center)
+        self.width = pc.Number(width)
+        self.add("Width", self.width)
+        self.npts = pc.Number(npts, decimals=0)
+        self.add("npts", self.npts)
+
+        self.opa_selector.input.updated.connect(self.on_opa_updated)
+
+    @property
+    def kwargs(self):
+        # TODO 'static' method does not work so I don't give it a gui element yet -- 2022-05-16 KFS
+        return {"method": "scan", "center": self.center.read(), "width": self.width.read(), "npts": int(self.npts.read())}
+
+    def on_opa_updated(self):
+        self.motor.set_allowed_values(devices_all_json[self.opa_selector.args[0]]["components"].keys())
 
 
-class OpaMotorFullWidget:
-    def __init__(self):
-        self.frame = QtWidgets.QWidget()
-        self.frame.setLayout(QtWidgets.QVBoxLayout())
+
+class OpaMotorFullWidget(GenericScanArgsWidget):
+    def __init__(self, opa_selector):
+        self.opa_selector = opa_selector
+        super().__init__(None)
+        self.nargs = 0
+        self.kwarg = "motors"
+
+    def add_axis(self, motor=None, method="scan", center=0, width=1, npts=11):
+        if not motor:
+            motor = devices_movable[0]
+        axis = OpaMotorAxis(motor, method, center, width, npts, opa_selector=self.opa_selector)
+        self.axes.append(axis)
+        self.axis_container_widget.layout().addWidget(axis)
 
     @property
     def args(self):
@@ -645,43 +717,92 @@ class OpaMotorFullWidget:
 
     @property
     def kwargs(self):
-        return {}
+        return {"motors":{a.motor.read(): a.kwargs for a in self.axes}}
+
+    @kwargs.setter
+    def kwargs(self, value):
+        while self.axes:
+            self.remove_axis()
+        if "motors" in value:
+            for mot, params in value["motors"].items():
+                self.add_axis(motor=mot, **params)
+
+
 
 
 class SpectrometerWidget(pw.InputTable):
-    def __init__(self):
+    def __init__(self, name="spectrometer", include_center=True):
         super().__init__()
-        self.nargs = 1
+        self.nargs = 0
+        self.name = name
         self.frame = self
-        self.device = pc.Combo(["None"] + devices_movable)
+        self.add("Spectrometer", None)
+        spec_devices = []
+        for dev in devices_all_json:
+            if dev not in devices_with_deps and wt.units.is_valid_conversion(get_units(dev), "nm"):
+                spec_devices.append(dev)
+        self.device = pc.Combo(["None"] + spec_devices)
         self.add("Device", self.device)
-        self.method = pc.Combo(["none", "static", "zero", "track", "set", "scan"])
+        self.method = pc.Combo(["none", "static", "zero", "track", "scan"])
         self.add("Method", self.method)
         self.center = pc.Number()
         self.add("Center", self.center)
         self.width = pc.Number(-250)
         self.add("Width", self.width)
+        self.units = pc.Combo(("wn",) + wt.units.get_valid_conversions("wn"))
+        self.add("Units", self.units)
         self.npts = pc.Number(11, decimals=0)
         self.add("Npts", self.npts)
 
-    @property
-    def args(self):
-        device = self.device.read()
-        if device == "None":
-            device = None
-        return [
-            {
-                "device": device,
-                "method": self.method.read(),
-                "center": self.center.read(),
-                "width": self.width.read(),
-                "npts": int(self.npts.read()),
-            }
-        ]
+        self.used = {
+            "none": (),
+            "static": ("device", "center", "units"),
+            "zero": ("device"),
+            "track": ("device"),
+            "scan": ("device", "center", "width", "units", "npts"),
+        }
+
+        if not include_center:
+            self.used["scan"] = ("device", "width", "units", "npts")
+
+        self.device.updated.connect(self.on_device_selected)
+        self.method.updated.connect(self.on_method_selected)
+        self.on_device_selected()
 
     @property
     def kwargs(self):
-        return {}
+        device = self.device.read()
+        method = self.method.read()
+        if device == "None" or method == "none":
+            return {self.name: None}
+        out = {
+            k: v
+            for k, v in {
+                "device": device,
+                "method": method,
+                "center": self.center.read(),
+                "width": self.width.read(),
+                "npts": int(self.npts.read()),
+            }.items()
+            if k in self.used[method] or k == "method"
+        }
+        return {self.name: out}
+
+    @property
+    def args(self):
+        return []
+
+    def on_device_selected(self):
+        if self.device.read() == "None":
+            for var in ("center", "width", "units", "npts"):
+                getattr(self, var).set_disabled(True)
+        else:
+            self.on_method_selected()
+
+    def on_method_selected(self):
+        method = self.method.read()
+        for var in ("device", "center", "width", "units", "npts"):
+            getattr(self, var).set_disabled(not var in self.used[method])
 
 
 plan_ui_lookup = defaultdict(PlanUI)
@@ -764,49 +885,54 @@ plan_ui_lookup["run_tune_test"] = PlanUI(
         MetadataWidget(),
         DeviceListWidget(),
         OpaSelectorWidget(),
-        SpectrometerWidget(),
+        SpectrometerWidget(include_center=False),
     ]
 )
+opa=OpaSelectorWidget()
 plan_ui_lookup["run_setpoint"] = PlanUI(
     [
         MetadataWidget(),
         DeviceListWidget(),
-        OpaSelectorWidget(),
-        OpaMotorSelectorWidget(),
+        opa,
+        OpaMotorSelectorWidget(opa_selector=opa),
         FloatWidget("Width", "width", 1),
         IntWidget("Npts", "npts", 11),
-        SpectrometerWidget(),
+        SpectrometerWidget(include_center=False),
     ]
 )
+opa=OpaSelectorWidget()
 plan_ui_lookup["run_intensity"] = PlanUI(
     [
         MetadataWidget(),
         DeviceListWidget(),
-        OpaSelectorWidget(),
-        OpaMotorSelectorWidget(),
+        opa,
+        OpaMotorSelectorWidget(opa_selector=opa),
         FloatWidget("Width", "width", 1),
         IntWidget("Npts", "npts", 11),
-        SpectrometerWidget(),
+        SpectrometerWidget(include_center=False),
     ]
 )
+opa=OpaSelectorWidget()
 plan_ui_lookup["run_holistic"] = PlanUI(
     [
         MetadataWidget(),
         DeviceListWidget(),
-        OpaSelectorWidget(),
-        OpaMotorSelectorWidget(),
-        OpaMotorSelectorWidget(),
+        opa,
+        OpaMotorSelectorWidget(opa_selector=opa),
+        OpaMotorSelectorWidget(opa_selector=opa),
         FloatWidget("Width", "width", 1),
         IntWidget("Npts", "npts", 11),
-        SpectrometerWidget(),
+        SpectrometerWidget(include_center=False),
     ]
 )
+opa=OpaSelectorWidget()
 plan_ui_lookup["motortune"] = PlanUI(
     [
         MetadataWidget(),
         DeviceListWidget(),
-        OpaSelectorWidget(),
-        OpaMotorFullWidget(),
+        opa,
+        BoolWidget("Use Tune Points", "use_tune_points"),
+        OpaMotorFullWidget(opa_selector=opa),
         SpectrometerWidget(),
     ]
 )
