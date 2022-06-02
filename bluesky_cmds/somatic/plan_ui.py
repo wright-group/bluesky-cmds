@@ -487,6 +487,35 @@ class GenericScanArgsWidget:
     def kwargs(self, kwargs):
         pass
 
+class MvAxis(pw.InputTable):
+    def __init__(self, hardware, position):
+        # TODO: units?
+        super().__init__()
+        self.add("Axis", None)
+        self.hardware = pc.Combo(devices_movable)
+        self.hardware.write(hardware)
+        self.add("Hardware", self.hardware)
+        self.position = pc.Number()
+        self.position.write(position)
+        self.add("Position", self.position)
+
+    @property
+    def args(self):
+        return [
+            self.hardware.read(),
+            self.position.read(),
+        ]
+
+class MvArgsWidget(GenericScanArgsWidget):
+    def __init__(self):
+        super().__init__(2)
+
+    def add_axis(self, hardware=None, position=0):
+        if not hardware:
+            hardware = devices_movable[0]
+        axis = MvAxis(hardware, position)
+        self.axes.append(axis)
+        self.axis_container_widget.layout().addWidget(axis)
 
 class GridscanAxis(pw.InputTable):
     def __init__(self, hardware, start, stop, npts, units):
@@ -806,6 +835,16 @@ class SpectrometerWidget(pw.InputTable):
 
 
 plan_ui_lookup = defaultdict(PlanUI)
+plan_ui_lookup["sleep"] = PlanUI(
+    [
+        FloatWidget("time", "time", 1.0),
+    ]
+)
+plan_ui_lookup["mv"] = PlanUI(
+    [
+        MvArgsWidget(),
+    ]
+)
 plan_ui_lookup["grid_scan_wp"] = PlanUI(
     [
         MetadataWidget(),
