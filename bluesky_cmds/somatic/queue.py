@@ -1,9 +1,10 @@
 ### import ####################################################################
 
 import collections
+import functools
 import pprint
 
-from qtpy import QtCore, QtWidgets
+from qtpy import QtCore, QtGui, QtWidgets
 
 from bluesky_queueserver.manager.comms import zmq_single_request
 
@@ -290,6 +291,9 @@ class GUI(QtCore.QObject):
         for _ in range(self.table.rowCount()):
             self.table.removeRow(0)
 
+        def copy_info(_, info):
+            QtGui.QGuiApplication.clipboard().setText(info)
+
         def add_item(item, status=None, queue_index=None, append=False):
             table_index = self.table.rowCount() if append else 0
             self.table.insertRow(table_index)
@@ -306,11 +310,28 @@ class GUI(QtCore.QObject):
             label.setContentsMargins(3, 3, 3, 3)
             self.table.setCellWidget(table_index, 2, label)
             # description
+            container = QtWidgets.QWidget()
             label = pw.Label(repr(item.get("args", [])) + repr(item.get("kwargs", {})))
             label.setContentsMargins(3, 3, 3, 3)
             label.setToolTip(pprint.pformat(item))
             label.setDisabled(True)
-            self.table.setCellWidget(table_index, 3, label)
+            container.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
+            copyJsonAction = QtWidgets.QAction("Copy JSON", container)
+            copyJsonAction.triggered.connect(functools.partial(copy_info, info=pprint.pformat(item)))
+            container.addAction(copyJsonAction)
+            copyItemUidAction = QtWidgets.QAction("Copy Item UID", container)
+            copyItemUidAction.triggered.connect(functools.partial(copy_info, info=item["item_uid"]))
+            container.addAction(copyItemUidAction)
+            label.setParent(container)
+            self.table.setCellWidget(table_index, 3, container)
+
+            if "result" in item and item["result"]["run_uids"]:
+                # TODO: account for multiple runs, currently nothing we use actually does multiple runs
+                # So I'm ignoring the possibility (wasn't trivial to get it to work -- KFS 2022-06-16
+                copyRunIdAction = QtWidgets.QAction("Copy Run UID", container)
+                copyRunIdAction.triggered.connect(functools.partial(copy_info, info=item["result"]["run_uids"][0]))
+                container.addAction(copyRunIdAction)
+
             # remove
             if status == "enqueued":
                 button = self.add_button_to_table(table_index, 4, "REMOVE", "stop")
