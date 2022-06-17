@@ -15,6 +15,7 @@ import bluesky_cmds.project.widgets as pw
 import bluesky_cmds.somatic as somatic
 
 from . import plan_ui
+from . import presets
 
 ### GUI #######################################################################
 
@@ -134,7 +135,7 @@ class GUI(QtCore.QObject):
         settings_layout.addWidget(line)
         # type combobox
         input_table = pw.InputTable()
-        allowed_values = ["plan", "instruction"]
+        allowed_values = ["plan", "instruction", "preset"]
         self.type_combo = pc.Combo(allowed_values=allowed_values)
         self.type_combo.updated.connect(self.update_type)
         input_table.add("Add to Queue", None)
@@ -144,15 +145,12 @@ class GUI(QtCore.QObject):
         self.type_frames = {
             "plan": self.create_plan_frame(),
             "instruction": self.create_instruction_frame(),
+            "preset": self.create_preset_frame(),
         }
         for frame in self.type_frames.values():
             settings_layout.addWidget(frame)
             frame.hide()
         self.update_type()
-        # append button
-        self.append_button = pw.SetButton("APPEND TO QUEUE")
-        self.append_button.clicked.connect(self.on_append_to_queue)
-        settings_layout.addWidget(self.append_button)
         # finish --------------------------------------------------------------
         settings_layout.addStretch(1)
         # line ----------------------------------------------------------------
@@ -175,6 +173,65 @@ class GUI(QtCore.QObject):
             )
         )
         return button
+    
+    def update_presets(self):
+        vals = presets.get_preset_names()
+        self.append_preset_button.setDisabled(False)
+        if not vals:
+            vals = ["No Presets"]
+            self.append_preset_button.setDisabled(True)
+        self.preset.set_allowed_values(vals)
+
+    def create_preset_frame(self):
+        frame = QtWidgets.QWidget()
+        frame.setLayout(QtWidgets.QVBoxLayout())
+        layout = frame.layout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        input_table = pw.InputTable()
+        vals = presets.get_preset_names()
+        if not vals:
+            vals = ["No Presets"]
+        self.preset = pc.Combo(allowed_values = vals)
+        input_table.add("Preset", self.preset)
+        self.append_preset_button = pw.SetButton("Append Preset Plans")
+        self.append_preset_button.clicked.connect(self.on_append_preset)
+        layout.addWidget(input_table)
+        self.edit_preset_button = pw.SetButton("Edit Preset Plans", color="advanced")
+        self.edit_preset_button.clicked.connect(self.on_edit_preset)
+        layout.addWidget(self.edit_preset_button)
+        layout.addWidget(self.append_preset_button)
+        return frame
+
+    def on_append_preset(self):
+        preset = self.preset.read()
+        for item in presets.get_preset_items(preset):
+            # TODO add metadata here
+            zmq_single_request(
+                "queue_item_add",
+                {
+                    "item": item,
+                    "user_group": "admin",
+                    "user": "bluesky-cmds",
+                },
+            )
+
+    def on_edit_preset(self):
+        preset = self.preset.read()
+        presets.open_preset_file(preset)
+
+    def show_preset_dialog(self, item):
+        input_dia = QtWidgets.QInputDialog()
+        new = "New Preset..."
+        vals = presets.get_preset_names() + [new]
+        name, ok = input_dia.getItem(self.parent_widget, "Preset", "Select a preset", vals)
+        if ok and name == new:
+            name, ok = input_dia.getText(self.parent_widget, "Preset", "Name of new preset")
+
+        if ok:
+            presets.append_preset_item(name, item)
+        self.update_presets()
+
+
 
     def create_plan_frame(self):
         frame = QtWidgets.QWidget()
@@ -192,6 +249,9 @@ class GUI(QtCore.QObject):
         self.on_plan_selected()
         for widget in self.plan_widgets.values():
             layout.addWidget(widget.frame)
+        append_button = pw.SetButton("APPEND TO QUEUE")
+        append_button.clicked.connect(self.on_append_to_queue)
+        layout.addWidget(append_button)
         return frame
 
     def on_append_to_queue(self):
@@ -213,14 +273,6 @@ class GUI(QtCore.QObject):
                 "user": "bluesky-cmds",
             },
         )
-        from pprint import pprint
-        pprint({
-                    "item_type": "plan",
-                    "name": plan_name,
-                    "args": widget.args,
-                    "kwargs": kwargs,
-                    "meta": meta,
-                    })
 
     def on_queue_start_clicked(self):
         zmq_single_request("queue_start")
@@ -331,6 +383,10 @@ class GUI(QtCore.QObject):
                 copyRunIdAction = QtWidgets.QAction("Copy Run UID", container)
                 copyRunIdAction.triggered.connect(functools.partial(copy_info, info=item["result"]["run_uids"][0]))
                 container.addAction(copyRunIdAction)
+
+            appendPresetAction = QtWidgets.QAction("Append to preset...", container)
+            appendPresetAction.triggered.connect(functools.partial(self.show_preset_dialog, item=item))
+            container.addAction(appendPresetAction)
 
             # remove
             if status == "enqueued":
