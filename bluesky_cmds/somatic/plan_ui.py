@@ -4,16 +4,15 @@ import json
 
 import toolz
 from qtpy import QtWidgets
-from bluesky_queueserver.manager.comms import zmq_single_request
+from .comms import RM
 from bluesky_hwproxy import zmq_single_request as hwproxy_request
 
 import WrightTools as wt
 from bluesky_cmds.project import widgets as pw
 from bluesky_cmds.project import classes as pc
 
-devices_all_json = zmq_single_request("devices_allowed", {"user_group": "admin"})[0][
-    "devices_allowed"
-]
+# TODO: rebuild uis on change to devices_allowed
+devices_all_json = RM.devices_allowed()["devices_allowed"]
 devices_all = {}
 
 from pprint import pprint
