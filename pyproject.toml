@@ -12,11 +12,13 @@ description-file = "README.md"
 classifiers = ["License :: OSI Approved :: MIT License"]
 requires-python = ">=3.7"
 requires = ["appdirs",
+            "bluesky-queueserver-api",
             "click",
 	    "pyqtgraph",
 	    "pyside2",
 	    "qtpy",
 	    "toml",
+	    "toolz",
 	    "wrighttools",
 	    ]
 
