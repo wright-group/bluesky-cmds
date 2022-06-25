@@ -1,3 +1,3 @@
 [bluesky]
-re-manager = "localhost:60615"
+re-manager = "tcp://localhost:60615"
 zmq-proxy = "localhost:5568"
