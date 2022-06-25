@@ -6,7 +6,8 @@ import pprint
 
 from qtpy import QtCore, QtGui, QtWidgets
 
-from bluesky_queueserver.manager.comms import zmq_single_request
+from .comms import RM
+from bluesky_queueserver_api import BInst, BPlan
 
 import bluesky_cmds.project.project_globals as g
 import bluesky_cmds.project.classes as pc
@@ -32,7 +33,7 @@ class GUI(QtCore.QObject):
         self.layout = parent_widget.layout()
         self.create_frame()
         self.interrupt_choice_window = pw.ChoiceWindow(
-            "QUEUE INTERRUPTED", button_labels=["RESUME", "STOP AFTER PLAN", "STOP NOW"]
+            "QUEUE INTERRUPTED", button_labels=["RESUME", "STOP AFTER PLAN", "SKIP", "STOP NOW"]
         )
         self.clear_choice_window = pw.ChoiceWindow(
             "QUEUE CLEAR", button_labels=["no", "YES"]
@@ -162,16 +163,7 @@ class GUI(QtCore.QObject):
 
     def create_instruction_frame(self):
         button = pw.SetButton("Append Queue Stop")
-        button.clicked.connect(
-            lambda: zmq_single_request(
-                "queue_item_add",
-                {
-                    "item": {"item_type": "instruction", "name": "queue_stop"},
-                    "user_group": "admin",
-                    "user": "bluesky-cmds",
-                },
-            )
-        )
+        button.clicked.connect(lambda: RM.item_add(BInst("queue_stop")))
         return button
     
     def update_presets(self):
@@ -206,14 +198,7 @@ class GUI(QtCore.QObject):
         preset = self.preset.read()
         for item in presets.get_preset_items(preset):
             # TODO add metadata here
-            zmq_single_request(
-                "queue_item_add",
-                {
-                    "item": item,
-                    "user_group": "admin",
-                    "user": "bluesky-cmds",
-                },
-            )
+            RM.item_add(item)
 
     def on_edit_preset(self):
         preset = self.preset.read()
@@ -239,7 +224,7 @@ class GUI(QtCore.QObject):
         layout = frame.layout()
         layout.setContentsMargins(0, 0, 0, 0)
         input_table = pw.InputTable()
-        allowed_plans = zmq_single_request("plans_allowed", {"user_group": "admin"})[0]
+        allowed_plans = RM.plans_allowed()
         allowed_values = allowed_plans["plans_allowed"].keys()
         self.plan_combo = pc.Combo(allowed_values=allowed_values)
         self.plan_combo.updated.connect(self.on_plan_selected)
@@ -259,56 +244,47 @@ class GUI(QtCore.QObject):
         widget = self.plan_widgets[plan_name]
         kwargs = widget.kwargs
         meta = kwargs.pop("md", {})
-        zmq_single_request(
-            "queue_item_add",
-            {
-                "item": {
-                    "item_type": "plan",
-                    "name": plan_name,
-                    "args": widget.args,
-                    "kwargs": kwargs,
-                    "meta": meta,
-                },
-                "user_group": "admin",
-                "user": "bluesky-cmds",
-            },
-        )
+        plan = BPlan(plan_name, *widget.args, **kwargs)
+        plan.meta = meta
+        RM.item_add(plan)
 
     def on_queue_start_clicked(self):
-        zmq_single_request("queue_start")
+        RM.queue_start()
 
     def on_interrupt_clicked(self):
-        zmq_single_request("re_pause", {"option": "immediate"})
+        RM.re_pause("immediate")
         self.interrupt_choice_window.set_text("Please choose how to proceed.")
         index = self.interrupt_choice_window.show()
         if index == 0:  # RESUME
-            zmq_single_request("re_resume")
-        elif index == 1:  # SKIP
-            zmq_single_request("re_resume")
-            zmq_single_request("queue_stop")
+            RM.re_resume()
+        elif index == 1:  # STOP AFTER PLAN
+            RM.re_resume()
+            RM.queue_stop()
         elif index == 2:  # HALT
-            zmq_single_request("re_abort")
+            RM.re_stop()
+        elif index == 3:  # HALT
+            RM.re_abort()
         # TODO Recover skip behavior... may require upstream change to be sane
 
     def on_clear_clicked(self):
         self.clear_choice_window.set_text("Do you want to clear the queue?")
         index = self.clear_choice_window.show()
         if index == 1:
-            zmq_single_request("queue_clear")
+            RM.queue_clear()
 
     def on_clear_history_clicked(self):
         self.clear_choice_window.set_text("Do you want to clear the history?")
         index = self.clear_choice_window.show()
         if index == 1:
-            zmq_single_request("history_clear")
+            RM.history_clear()
 
     def on_index_changed(self, row, new_index):
         item = self.queue[row]
-        zmq_single_request("queue_item_move", {"uid": item["item_uid"], "pos_dest": new_index})
+        RM.item_move(uid=item["item_uid"], pos_dest=new_index)
 
     def on_remove_item(self, row):
         item = self.queue[row]
-        zmq_single_request("queue_item_remove", {"uid": item["item_uid"]})
+        RM.item_remove(uid=item["item_uid"])
 
     def on_load_item(self, item):
         self.plan_combo.write(item["name"])
@@ -328,14 +304,14 @@ class GUI(QtCore.QObject):
         self.plan_widgets[self.plan_combo.read()].frame.show()
 
     def update_queue(self):
-        self.queue_get = zmq_single_request("queue_get")[0]
-        self.queue = self.queue_get.get("items", [])
-        self.running = self.queue_get.get("running_item", {})
+        queue_get = RM.queue_get()
+        self.queue = queue_get.get("items", [])
+        self.running = queue_get.get("running_item", {})
         self.update_ui()
 
     def update_history(self):
-        self.history_get = zmq_single_request("history_get")[0]
-        self.history = self.history_get.get("items", [])
+        history_get = RM.history_get()
+        self.history = history_get.get("items", [])
         self.update_ui()
 
     def update_ui(self):

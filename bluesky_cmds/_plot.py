@@ -16,6 +16,7 @@ import bluesky_cmds.project.project_globals as g
 import bluesky_cmds.project.widgets as pw
 import bluesky_cmds.project.classes as pc
 import bluesky_cmds.somatic as somatic
+from bluesky_cmds.__main__ import config
 
 from pprint import pprint
 
@@ -286,7 +287,7 @@ class PlotCallback(CallbackBase):
 
 
 # TODO config rather than hardcode address
-dispatcher = RemoteDispatcher("localhost:5568")
+dispatcher = RemoteDispatcher(config.get("bluesky", {}).get("zmq-proxy", "localhost:5568"))
 plot_callback = PlotCallback()
 dispatcher.subscribe(plot_callback)
 dispatcher.start()

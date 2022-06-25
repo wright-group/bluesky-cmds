@@ -1,5 +1,5 @@
 from qtpy import QtCore
-from bluesky_queueserver.manager.comms import zmq_single_request
+from .comms import RM
 
 
 class SignalContainer(QtCore.QObject):
@@ -23,11 +23,11 @@ class SignalContainer(QtCore.QObject):
         self.heartbeat.start(500)
 
     def process_status(self):
-        status = zmq_single_request("status")[0]
+        status = RM.status()
         if not status:
             return
         if not status.get("worker_environment_exists"):
-            zmq_single_request("environment_open")
+            RM.environment_open()
         if self.status.get("devices_allowed_uid") != status.get("devices_allowed_uid"):
             self.devices_allowed_updated.emit()
         if self.status.get("manager_state") != status.get("manager_state"):
