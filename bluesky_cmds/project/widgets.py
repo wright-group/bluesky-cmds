@@ -8,8 +8,7 @@ from qtpy import QtWidgets, QtCore
 
 import pyqtgraph as pg
 
-from bluesky_cmds.project import project_globals as g
-from bluesky_cmds.project.style import colors
+from bluesky_cmds.project.colors import colors
 
 __here__ = pathlib.Path(__file__).parent
 

@@ -12,7 +12,7 @@ from bluesky_queueserver_api import BInst, BPlan
 import bluesky_cmds.project.project_globals as g
 import bluesky_cmds.project.classes as pc
 import bluesky_cmds.project.widgets as pw
-from bluesky_cmds.project.style import colors
+from bluesky_cmds.project.colors import colors
 
 import bluesky_cmds.somatic as somatic
 

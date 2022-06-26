@@ -1,7 +1,5 @@
 import time
 
-from qtpy import QtWidgets, QtCore
-
 ### global classes ############################################################
 
 
@@ -18,11 +16,6 @@ class SimpleGlobal:
 
 ### other globals #############################################################
 # alphabetical
-
-app = SimpleGlobal()
-
-main_window = SimpleGlobal()
-
 
 class progress_bar:
     def __init__(self):
@@ -56,7 +49,7 @@ class progress_bar:
             self.time_remaining.setText("%02d:%02d:%02d" % (h, m, s))
 
     def set_color(self, color):
-        from .style import colors
+        from .colors import colors
         self.value.setStyleSheet(f"""
         QProgressBar:horizontal{{border: 0px solid gray; border-radius: 0px; background: {colors["background"]}; padding: 0px; height: 30px;}}
         QProgressBar:chunk{{background:{colors[color]} }}
@@ -84,7 +77,5 @@ class shutdown(SimpleGlobal):
     def fire(self):
         for method in self.methods:
             method()
-        main_window.read().close()
-
 
 shutdown = shutdown()

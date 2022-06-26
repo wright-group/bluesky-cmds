@@ -17,6 +17,7 @@ import bluesky_cmds.project.widgets as pw
 import bluesky_cmds.project.classes as pc
 import bluesky_cmds.somatic as somatic
 from bluesky_cmds.__main__ import config
+from bluesky_cmds._main_window import window
 
 from pprint import pprint
 
@@ -30,7 +31,7 @@ class GUI(QtCore.QObject):
         self._units_map = {}
 
     def create_frame(self):
-        self.main_widget = g.main_window.read().plot_widget
+        self.main_widget = window.plot_widget
         # create main daq tab
         main_widget = self.main_widget
         layout = QtWidgets.QHBoxLayout()

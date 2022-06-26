@@ -13,9 +13,8 @@ import pathlib
 # BEWARE OF CHANGING ORDER OF IMPORTS!!!!!!!!!
 
 from .project import project_globals as g
-g.app.write(app)
+from .project.colors import colors
 from .project import widgets as pw
-from .project.style import colors
 
 
 ### version information #######################################################
@@ -24,7 +23,7 @@ from .__version__ import __version__
 
 
 ### main window ###############################################################
-
+window = None
 
 class MainWindow(QtWidgets.QMainWindow):
     shutdown = QtCore.Signal()
@@ -32,8 +31,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, config):
         QtWidgets.QMainWindow.__init__(self, parent=None)
         self.config = config
-        g.main_window.write(self)
         g.shutdown.write(self.shutdown)
+        global window
+        window = self
         self.setWindowTitle("bluesky-cmds %s" % __version__)
         # set size, position
         self.window_verti_size = 600

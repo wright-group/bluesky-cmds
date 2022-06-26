@@ -1,23 +1,8 @@
 __all__ = ["colors", "set_style"]
 
 from qtpy import QtWidgets
-from . import project_globals as g
-
-# see http://www.google.com/design/spec/style/color.html#color-color-palette
-
-colors = {
-    "background": "#212121",
-    "go": "#009688",
-    "stop": "#F44336",
-    "set": "#009688",
-    "advanced": "#FFC107",
-    "text_light": "#EEEEEE",
-    "text_disabled": "#757575",
-    "widget_background": "#EEEEEE",
-    "heading_1": "#00BCD4",
-    "heading_0": "#FFC107",
-}  # least important heading
-
+from .._main_window import app
+from .colors import colors
 
 def set_style():
 
@@ -62,23 +47,7 @@ def set_style():
     )
     StyleSheet += "QGroupBox::title{subcontrol-origin: margin; padding: 0 0px}"
 
-    app = g.app.read()
     app.setStyleSheet(StyleSheet)
-
-    # Palette--------------------------------------------------------------------
-
-    """
-    MainWindow = g.main_window.read()
-
-    palette = QtWidgets.QPalette(MainWindow.palette())
-    palette.setColor(MainWindow.backgroundRole(), QtWidgets.QColor(colors['background']))
-    #MainWindow.setPalette(palette)
-
-    """
-
-    # style----------------------------------------------------------------------
-
-    # app.setStyle('windowsxp')
 
 
 def set_background_role(obj):
