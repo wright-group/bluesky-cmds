@@ -15,6 +15,7 @@ import pathlib
 from .project import project_globals as g
 g.app.write(app)
 from .project import widgets as pw
+from .project.style import colors
 
 
 ### version information #######################################################
@@ -68,7 +69,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.queue_message = QtWidgets.QLabel("")
         time_remaining = QtWidgets.QLabel("00:00:00")
         StyleSheet = "QLabel{color: custom_color; font: bold 14px}".replace(
-            "custom_color", g.colors_dict.read()["text_light"]
+            "custom_color", colors["text_light"]
         )
         time_elapsed.setStyleSheet(StyleSheet)
         self.queue_message.setStyleSheet(StyleSheet)

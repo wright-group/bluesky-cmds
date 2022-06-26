@@ -18,8 +18,6 @@ colors = {
     "heading_0": "#FFC107",
 }  # least important heading
 
-g.colors_dict.write(colors)
-
 
 def set_style():
 

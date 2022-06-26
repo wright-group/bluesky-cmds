@@ -21,8 +21,6 @@ class SimpleGlobal:
 
 app = SimpleGlobal()
 
-colors_dict = SimpleGlobal()
-
 main_window = SimpleGlobal()
 
 
