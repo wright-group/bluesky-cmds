@@ -16,15 +16,12 @@ class SimpleGlobal:
         self.value = value
 
 
-debug = SimpleGlobal(False)
 ### other globals #############################################################
 # alphabetical
 
 app = SimpleGlobal()
 
 colors_dict = SimpleGlobal()
-
-main_thread = SimpleGlobal(QtCore.QThread.currentThread())
 
 main_window = SimpleGlobal()
 
@@ -93,5 +90,3 @@ class shutdown(SimpleGlobal):
 
 
 shutdown = shutdown()
-
-system_name = SimpleGlobal()
