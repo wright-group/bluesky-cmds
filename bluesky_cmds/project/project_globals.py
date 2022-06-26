@@ -17,32 +17,6 @@ class SimpleGlobal:
 
 
 debug = SimpleGlobal(False)
-
-
-class logger:  # must come before other globals
-    def __init__(self):
-        pass
-
-    def load(self):
-        import bluesky_cmds.project.logging_handler as logging_handler
-
-        self.value = logging_handler.log
-        if debug.read():
-            self.log("info", "Debug", "Yaqc_cmds is in debug mode")
-
-    def log(self, level, name, message="", origin="name"):
-        """
-        wrapper of logging method for Yaqc_cmds
-
-        accepts strings
-
-        levels: debug, info, warning, error, critical
-        """
-        self.value(level, name, message, origin)
-
-
-logger = logger()
-
 ### other globals #############################################################
 # alphabetical
 
@@ -53,31 +27,6 @@ colors_dict = SimpleGlobal()
 main_thread = SimpleGlobal(QtCore.QThread.currentThread())
 
 main_window = SimpleGlobal()
-
-
-class QueueControl(QtCore.QObject):
-    def __init__(self):
-        self.value = None
-        self.widgets_to_disable = []
-
-    def read(self):
-        return self.value
-
-    def write(self, value):
-        for widget in self.widgets_to_disable:
-            try:
-                widget.setDisabled(value)
-            except RuntimeError:
-                # widget has been deleted, probably
-                self.widgets_to_disable.remove(widget)
-        self.value = value
-        main_window.read().queue_control.emit()
-
-    def disable_when_true(self, widget):
-        self.widgets_to_disable.append(widget)
-
-
-queue_control = QueueControl()
 
 
 class progress_bar:

@@ -13,12 +13,7 @@ import pathlib
 # BEWARE OF CHANGING ORDER OF IMPORTS!!!!!!!!!
 
 from .project import project_globals as g
-
 g.app.write(app)
-g.logger.load()
-
-g.logger.log("info", "Startup", "Yaqc_cmds is attempting startup")
-
 from .project import widgets as pw
 
 
@@ -32,7 +27,6 @@ from .__version__ import __version__
 
 class MainWindow(QtWidgets.QMainWindow):
     shutdown = QtCore.Signal()
-    queue_control = QtCore.Signal()
 
     def __init__(self, config):
         QtWidgets.QMainWindow.__init__(self, parent=None)
@@ -56,11 +50,6 @@ class MainWindow(QtWidgets.QMainWindow):
         from bluesky_cmds.somatic import queue
 
         self.queue_gui = queue.GUI(self.queue_widget, self.queue_message)
-        # self.queue_gui.load_modules()
-        # log completion
-        if g.debug.read():
-            print("Yaqc_cmds_ui.MainWindow.__init__ complete")
-        g.logger.log("info", "Startup", "Yaqc_cmds MainWindow __init__ finished")
 
     def _create_main_frame(self):
         self.main_frame = QtWidgets.QWidget(parent=self)
@@ -110,8 +99,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.main_frame)
 
     def _initialize_widgets(self):
-        if g.debug.read():
-            print("initialize widgets")
         # import widgets
         import bluesky_cmds._plot
 
@@ -119,9 +106,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         attempt a clean shutdown
         """
-        if g.debug.read():
-            print("shutdown")
-        g.logger.log("info", "Shutdown", "Yaqc_cmds is attempting shutdown")
         self.shutdown.emit()
         g.shutdown.fire()
 

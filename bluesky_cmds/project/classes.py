@@ -43,7 +43,6 @@ class PyCMDS_Object(QtCore.QObject):
         name="",
         label="",
         set_method=None,
-        disable_under_queue_control=False,
         *args,
         **kwargs,
     ):
@@ -63,9 +62,6 @@ class PyCMDS_Object(QtCore.QObject):
             pass
         else:
             self.label = self.name
-        # disable under module control
-        if disable_under_queue_control:
-            g.main_window.read().queue_control.connect(self.on_queue_control)
 
     def associate(self, display=None, pre_name=""):
         # display
@@ -76,14 +72,6 @@ class PyCMDS_Object(QtCore.QObject):
         # new object
         new_obj = self.__class__(initial_value=self.read(), display=display, name=name)
         return new_obj
-
-    def on_queue_control(self):
-        if g.queue_control.read():
-            if self.has_widget:
-                self.widget.setDisabled(True)
-        else:
-            if self.has_widget:
-                self.widget.setDisabled(self.disabled)
 
     def read(self):
         return self.value.read()
