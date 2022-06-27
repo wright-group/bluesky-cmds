@@ -124,9 +124,3 @@ def setLevel(level):
     _default_level = level
     for log in _loggers:
         log.setLevel(level)
-
-log = getLogger("logging")
-log.info("starting application")
-log.error("Test error")
-log.warning("Test warning")
-log.critical("Test critical")
