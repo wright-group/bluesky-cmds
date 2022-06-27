@@ -19,7 +19,8 @@ import bluesky_cmds.somatic as somatic
 from bluesky_cmds.__main__ import config
 from bluesky_cmds._main_window import window
 
-from pprint import pprint
+from .logging import getLogger
+logger = getLogger("plot")
 
 
 class GUI(QtCore.QObject):
@@ -139,8 +140,7 @@ class GUI(QtCore.QObject):
                     symbolBrush=pg.mkBrush(color),
                 )
             except (TypeError, ValueError) as e:
-                print(e)
-                pass
+                logger.error(e)
 
         def plot_1d(event, color="c"):
             x = event["data"][axis]
@@ -159,8 +159,7 @@ class GUI(QtCore.QObject):
                     brush=pg.mkBrush(color),
                 )
             except (TypeError, ValueError) as e:
-                print(e)
-                pass
+                logger.error(e)
 
         num = plot_callback.events[-1]["data"][channel]
         if np.isscalar(num):
@@ -209,7 +208,7 @@ class PlotCallback(CallbackBase):
         self.progress_bar = g.progress_bar
 
     def start(self, doc):
-        pprint(doc)
+        logger.info(doc)
         self.start_doc = doc
         super().start(doc)
         self.progress_bar.begin_new_scan_timer()
@@ -244,7 +243,6 @@ class PlotCallback(CallbackBase):
         # A more full representation would account for multiple descriptors
         if doc["name"] != "primary":
             return
-        #pprint(doc)
         self.descriptor_doc = doc
         super().descriptor(doc)
 
@@ -281,8 +279,7 @@ class PlotCallback(CallbackBase):
 
     def stop(self, doc):
         super().stop(doc)
-        #self.progress_bar.set_fraction(1)
-        pprint(doc)
+        logger.info(doc)
         if doc["exit_status"] != "success":
             self.progress_bar.set_color("stop")
 

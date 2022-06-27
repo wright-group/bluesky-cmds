@@ -15,9 +15,6 @@ from bluesky_cmds.project import classes as pc
 devices_all_json = RM.devices_allowed()["devices_allowed"]
 devices_all = {}
 
-from pprint import pprint
-pprint(devices_all_json)
-
 
 def get_all_components(k, v):
     out = {k: v}

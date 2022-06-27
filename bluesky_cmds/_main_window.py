@@ -1,10 +1,8 @@
 #! /usr/bin/env python
 ### ensure folders exist ######################################################
 
-import sys
 from qtpy import QtWidgets, QtCore
 
-app = QtWidgets.QApplication(sys.argv)
 
 import pathlib
 
@@ -12,9 +10,11 @@ import pathlib
 #### import ###################################################################
 # BEWARE OF CHANGING ORDER OF IMPORTS!!!!!!!!!
 
+from ._app import app
 from .project import project_globals as g
 from .project.colors import colors
 from .project import widgets as pw
+from .logging import getLogger, log_widget
 
 
 ### version information #######################################################
@@ -88,6 +88,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs = pw.TabWidget()
         self.tabs.addTab(self.queue_widget, "Queue")
         self.tabs.addTab(self.plot_widget, "Plot")
+        self.tabs.addTab(log_widget, "Logs")
         #self.tabs.setContentsMargins(0.0, 0.0, 0.0, 0.0)
         box.addWidget(self.tabs)
         # vertical stretch

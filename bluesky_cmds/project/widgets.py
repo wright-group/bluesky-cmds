@@ -79,7 +79,6 @@ class Led(QtWidgets.QCheckBox):
         path = str(__here__).replace("\\", "/")
         StyleSheet = f"QCheckBox::indicator:checked {{image: url({path}/widget files/checkbox_checked.png);}}"
         StyleSheet += f"QCheckBox::indicator:unchecked {{image: url({path}/widget files/checkbox_unchecked.png);}}"
-        print(StyleSheet)
         self.setStyleSheet(StyleSheet)
 
 
@@ -526,7 +525,6 @@ class Plot1D(pg.GraphicsView):
         elif style == "dotted":
             linestyle = QtCore.Qt.DotLine
         else:
-            print("style not recognized in add_infinite_line")
             linestyle = QtCore.Qt.SolidLine
         pen = pg.mkPen(color, style=linestyle)
         line = pg.InfiniteLine(pen=pen)
