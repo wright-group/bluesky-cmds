@@ -1,10 +1,8 @@
 #! /usr/bin/env python
 ### ensure folders exist ######################################################
 
-import sys
 from qtpy import QtWidgets, QtCore
 
-app = QtWidgets.QApplication(sys.argv)
 
 import pathlib
 
@@ -12,14 +10,11 @@ import pathlib
 #### import ###################################################################
 # BEWARE OF CHANGING ORDER OF IMPORTS!!!!!!!!!
 
+from ._app import app
 from .project import project_globals as g
-
-g.app.write(app)
-g.logger.load()
-
-g.logger.log("info", "Startup", "Yaqc_cmds is attempting startup")
-
+from .project.colors import colors
 from .project import widgets as pw
+from .logging import getLogger, log_widget
 
 
 ### version information #######################################################
@@ -28,17 +23,17 @@ from .__version__ import __version__
 
 
 ### main window ###############################################################
-
+window = None
 
 class MainWindow(QtWidgets.QMainWindow):
     shutdown = QtCore.Signal()
-    queue_control = QtCore.Signal()
 
     def __init__(self, config):
         QtWidgets.QMainWindow.__init__(self, parent=None)
         self.config = config
-        g.main_window.write(self)
         g.shutdown.write(self.shutdown)
+        global window
+        window = self
         self.setWindowTitle("bluesky-cmds %s" % __version__)
         # set size, position
         self.window_verti_size = 600
@@ -56,11 +51,6 @@ class MainWindow(QtWidgets.QMainWindow):
         from bluesky_cmds.somatic import queue
 
         self.queue_gui = queue.GUI(self.queue_widget, self.queue_message)
-        # self.queue_gui.load_modules()
-        # log completion
-        if g.debug.read():
-            print("Yaqc_cmds_ui.MainWindow.__init__ complete")
-        g.logger.log("info", "Startup", "Yaqc_cmds MainWindow __init__ finished")
 
     def _create_main_frame(self):
         self.main_frame = QtWidgets.QWidget(parent=self)
@@ -79,7 +69,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.queue_message = QtWidgets.QLabel("")
         time_remaining = QtWidgets.QLabel("00:00:00")
         StyleSheet = "QLabel{color: custom_color; font: bold 14px}".replace(
-            "custom_color", g.colors_dict.read()["text_light"]
+            "custom_color", colors["text_light"]
         )
         time_elapsed.setStyleSheet(StyleSheet)
         self.queue_message.setStyleSheet(StyleSheet)
@@ -98,6 +88,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs = pw.TabWidget()
         self.tabs.addTab(self.queue_widget, "Queue")
         self.tabs.addTab(self.plot_widget, "Plot")
+        self.tabs.addTab(log_widget, "Logs")
         #self.tabs.setContentsMargins(0.0, 0.0, 0.0, 0.0)
         box.addWidget(self.tabs)
         # vertical stretch
@@ -110,8 +101,6 @@ class MainWindow(QtWidgets.QMainWindow):
         self.setCentralWidget(self.main_frame)
 
     def _initialize_widgets(self):
-        if g.debug.read():
-            print("initialize widgets")
         # import widgets
         import bluesky_cmds._plot
 
@@ -119,9 +108,6 @@ class MainWindow(QtWidgets.QMainWindow):
         """
         attempt a clean shutdown
         """
-        if g.debug.read():
-            print("shutdown")
-        g.logger.log("info", "Shutdown", "Yaqc_cmds is attempting shutdown")
         self.shutdown.emit()
         g.shutdown.fire()
 

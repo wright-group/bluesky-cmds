@@ -12,6 +12,7 @@ from bluesky_queueserver_api import BInst, BPlan
 import bluesky_cmds.project.project_globals as g
 import bluesky_cmds.project.classes as pc
 import bluesky_cmds.project.widgets as pw
+from bluesky_cmds.project.colors import colors
 
 import bluesky_cmds.somatic as somatic
 
@@ -56,7 +57,6 @@ class GUI(QtCore.QObject):
         # for some reason, my lambda function does not work when called outside
         # of a dedicated method - Blaise 2016-09-14
         index = QtWidgets.QSpinBox()
-        colors = g.colors_dict.read()
         StyleSheet = f"QSpinBox{{color: {colors['text_light']}; font: 14px;}}"
         StyleSheet += f"QScrollArea, QWidget{{background: {colors['background']};  border-color: black; border-radius: 0px;}}"
         StyleSheet += f"QWidget:disabled{{color: {colors['text_disabled']}; font: 14px; border: 0px solid black; border-radius: 0px;}}"

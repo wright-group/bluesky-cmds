@@ -8,9 +8,8 @@ from qtpy import QtWidgets, QtCore
 
 import pyqtgraph as pg
 
-from bluesky_cmds.project import project_globals as g
+from bluesky_cmds.project.colors import colors
 
-colors = g.colors_dict.read()
 __here__ = pathlib.Path(__file__).parent
 
 
@@ -80,7 +79,6 @@ class Led(QtWidgets.QCheckBox):
         path = str(__here__).replace("\\", "/")
         StyleSheet = f"QCheckBox::indicator:checked {{image: url({path}/widget files/checkbox_checked.png);}}"
         StyleSheet += f"QCheckBox::indicator:unchecked {{image: url({path}/widget files/checkbox_unchecked.png);}}"
-        print(StyleSheet)
         self.setStyleSheet(StyleSheet)
 
 
@@ -104,13 +102,13 @@ class SpinboxAsDisplay(QtWidgets.QDoubleSpinBox):
         self.setMaximumWidth(600)
         self.setButtonSymbols(QtWidgets.QAbstractSpinBox.NoButtons)
         StyleSheet = "QDoubleSpinBox{color: custom_color_1; font: bold font_sizepx; border: 0px solid #000000;}".replace(
-            "custom_color_1", g.colors_dict.read()["text_light"]
+            "custom_color_1", colors["text_light"]
         ).replace(
             "font_size", str(int(font_size))
         )
         StyleSheet += (
             "QScrollArea, QWidget{background: custom_color;  border-color: black;}".replace(
-                "custom_color", g.colors_dict.read()["background"]
+                "custom_color", colors["background"]
             )
         )
         self.setStyleSheet(StyleSheet)
@@ -176,13 +174,13 @@ class InputTable(QtWidgets.QWidget):
         if global_object.display:
             control.setDisabled(True)
             StyleSheet = "QDoubleSpinBox{color: custom_color_1; font: bold font_sizepx; border: 0px solid #000000;}".replace(
-                "custom_color_1", g.colors_dict.read()["text_light"]
+                "custom_color_1", colors["text_light"]
             ).replace(
                 "font_size", str(int(14))
             )
             StyleSheet += (
                 "QScrollArea, QWidget{background: custom_color;  border-color: black;}".replace(
-                    "custom_color", g.colors_dict.read()["background"]
+                    "custom_color", colors["background"]
                 )
             )
         else:
@@ -527,7 +525,6 @@ class Plot1D(pg.GraphicsView):
         elif style == "dotted":
             linestyle = QtCore.Qt.DotLine
         else:
-            print("style not recognized in add_infinite_line")
             linestyle = QtCore.Qt.SolidLine
         pen = pg.mkPen(color, style=linestyle)
         line = pg.InfiniteLine(pen=pen)

@@ -35,7 +35,7 @@ def launch(config_filepath):
             pathlib.Path(appdirs.user_config_dir("bluesky-cmds", "bluesky-cmds")) / "config.toml"
         )
 
-    global window, config
+    global config
     config = toml.load(config_filepath)
     window = MainWindow(config)
     style.set_style()
