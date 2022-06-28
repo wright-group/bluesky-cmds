@@ -107,7 +107,7 @@ class MetadataWidget:
         self.fields = {
             "Name": pc.String(),
             "Info": pc.String(),
-            "Experimentor": pc.Combo(["Kyle", "Emily", "Kelson", "Dan"]),
+            "Experimentor": pc.Combo(["unspecified"] + list(sorted(["Kyle", "Emily", "Kelson", "Dan", "Kent", "Peter", "Ryan", "Jason", "David", "John", "Chris", "James"]))),
         }
 
     @property
