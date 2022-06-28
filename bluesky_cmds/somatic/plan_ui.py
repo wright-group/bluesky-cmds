@@ -915,59 +915,61 @@ plan_ui_lookup["count"] = PlanUI(
         FloatWidget("Delay", "delay", 0),
     ]
 )
-plan_ui_lookup["run_tune_test"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        OpaSelectorWidget(),
-        SpectrometerWidget(include_center=False),
-    ]
-)
-opa=OpaSelectorWidget()
-plan_ui_lookup["run_setpoint"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        opa,
-        OpaMotorSelectorWidget(opa_selector=opa),
-        FloatWidget("Width", "width", 1),
-        IntWidget("Npts", "npts", 11),
-        SpectrometerWidget(include_center=False),
-    ]
-)
-opa=OpaSelectorWidget()
-plan_ui_lookup["run_intensity"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        opa,
-        OpaMotorSelectorWidget(opa_selector=opa),
-        FloatWidget("Width", "width", 1),
-        IntWidget("Npts", "npts", 11),
-        SpectrometerWidget(include_center=False),
-    ]
-)
-opa=OpaSelectorWidget()
-plan_ui_lookup["run_holistic"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        opa,
-        OpaMotorSelectorWidget(opa_selector=opa),
-        OpaMotorSelectorWidget(opa_selector=opa),
-        FloatWidget("Width", "width", 1),
-        IntWidget("Npts", "npts", 11),
-        SpectrometerWidget(include_center=False),
-    ]
-)
-opa=OpaSelectorWidget()
-plan_ui_lookup["motortune"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        opa,
-        BoolWidget("Use Tune Points", "use_tune_points"),
-        OpaMotorFullWidget(opa_selector=opa),
-        SpectrometerWidget(),
-    ]
-)
+
+if devices_with_deps:
+    plan_ui_lookup["run_tune_test"] = PlanUI(
+        [
+            MetadataWidget(),
+            DeviceListWidget(),
+            OpaSelectorWidget(),
+            SpectrometerWidget(include_center=False),
+        ]
+    )
+    opa=OpaSelectorWidget()
+    plan_ui_lookup["run_setpoint"] = PlanUI(
+        [
+            MetadataWidget(),
+            DeviceListWidget(),
+            opa,
+            OpaMotorSelectorWidget(opa_selector=opa),
+            FloatWidget("Width", "width", 1),
+            IntWidget("Npts", "npts", 11),
+            SpectrometerWidget(include_center=False),
+        ]
+    )
+    opa=OpaSelectorWidget()
+    plan_ui_lookup["run_intensity"] = PlanUI(
+        [
+            MetadataWidget(),
+            DeviceListWidget(),
+            opa,
+            OpaMotorSelectorWidget(opa_selector=opa),
+            FloatWidget("Width", "width", 1),
+            IntWidget("Npts", "npts", 11),
+            SpectrometerWidget(include_center=False),
+        ]
+    )
+    opa=OpaSelectorWidget()
+    plan_ui_lookup["run_holistic"] = PlanUI(
+        [
+            MetadataWidget(),
+            DeviceListWidget(),
+            opa,
+            OpaMotorSelectorWidget(opa_selector=opa),
+            OpaMotorSelectorWidget(opa_selector=opa),
+            FloatWidget("Width", "width", 1),
+            IntWidget("Npts", "npts", 11),
+            SpectrometerWidget(include_center=False),
+        ]
+    )
+    opa=OpaSelectorWidget()
+    plan_ui_lookup["motortune"] = PlanUI(
+        [
+            MetadataWidget(),
+            DeviceListWidget(),
+            opa,
+            BoolWidget("Use Tune Points", "use_tune_points"),
+            OpaMotorFullWidget(opa_selector=opa),
+            SpectrometerWidget(),
+        ]
+    )
