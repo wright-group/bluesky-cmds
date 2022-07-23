@@ -5,15 +5,12 @@ import json
 import toolz
 from qtpy import QtWidgets
 from .comms import RM
+from .signals import plans_allowed_updated, devices_allowed_updated
 from bluesky_hwproxy import zmq_single_request as hwproxy_request
 
 import WrightTools as wt
 from bluesky_cmds.project import widgets as pw
 from bluesky_cmds.project import classes as pc
-
-# TODO: rebuild uis on change to devices_allowed
-devices_all_json = RM.devices_allowed()["devices_allowed"]
-devices_all = {}
 
 
 def get_all_components(k, v):
@@ -28,17 +25,30 @@ def get_units(device):
         key_name = device.replace(".", "_")
     else:
         base_name = key_name = device
-    return hwproxy_request("describe", {"device": base_name})[0]["return"].get(key_name, {}).get(
+    return hwproxy_request("describe", {"device": base_name})[0].get("return", {}).get(key_name, {}).get(
         "units", None
     )
 
-for k, v in devices_all_json.items():
-    devices_all.update(get_all_components(k, v))
 
+devices_all = {}
+devices_all_json = {}
+devices_movable = []
+devices_not_movable = []
+devices_with_deps = []
 
-devices_movable = list(filter(lambda x: devices_all[x]["is_movable"], devices_all))
-devices_not_movable = list(filter(lambda x: not devices_all[x]["is_movable"], devices_all))
-devices_with_deps = list(filter(lambda x: "components" in devices_all[x], devices_all))
+def update_devices():
+    global devices_all, devices_all_json, devices_movable, devices_not_movable, devices_with_deps
+    devices_all_json = RM.devices_allowed()["devices_allowed"]
+    devices_all = {}
+
+    for k, v in devices_all_json.items():
+        devices_all.update(get_all_components(k, v))
+
+    devices_movable = list(filter(lambda x: devices_all[x]["is_movable"], devices_all))
+    devices_not_movable = list(filter(lambda x: not devices_all[x]["is_movable"], devices_all))
+    devices_with_deps = list(filter(lambda x: "components" in devices_all[x], devices_all))
+    update_plan_ui()
+
 
 
 class PlanUI:
@@ -831,145 +841,151 @@ class SpectrometerWidget(pw.InputTable):
 
 
 plan_ui_lookup = defaultdict(PlanUI)
-plan_ui_lookup["sleep"] = PlanUI(
-    [
-        FloatWidget("time", "time", 1.0),
-    ]
-)
-plan_ui_lookup["mv"] = PlanUI(
-    [
-        MvArgsWidget(),
-    ]
-)
-plan_ui_lookup["grid_scan_wp"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        GridscanArgsWidget(),
-        ConstantWidget(),
-    ]
-)
-plan_ui_lookup["rel_grid_scan_wp"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        GridscanArgsWidget(),
-        ConstantWidget(),
-    ]
-)
-plan_ui_lookup["scan_wp"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        ScanArgsWidget(),
-        IntWidget("Npts", "num", 11),
-        ConstantWidget(),
-    ]
-)
-plan_ui_lookup["rel_scan_wp"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        ScanArgsWidget(),
-        IntWidget("Npts", "num", 11),
-        ConstantWidget(),
-    ]
-)
-plan_ui_lookup["list_scan_wp"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        ListscanArgsWidget(),
-        ConstantWidget(),
-    ]
-)
-plan_ui_lookup["rel_list_scan_wp"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        ListscanArgsWidget(),
-        ConstantWidget(),
-    ]
-)
-plan_ui_lookup["list_grid_scan_wp"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        ListscanArgsWidget(),
-        ConstantWidget(),
-    ]
-)
-plan_ui_lookup["rel_list_grid_scan_wp"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        ListscanArgsWidget(),
-        ConstantWidget(),
-    ]
-)
-plan_ui_lookup["count"] = PlanUI(
-    [
-        MetadataWidget(),
-        DeviceListWidget(),
-        IntWidget("Npts", "num", 1),
-        FloatWidget("Delay", "delay", 0),
-    ]
-)
 
-if devices_with_deps:
-    plan_ui_lookup["run_tune_test"] = PlanUI(
+def update_plan_ui():
+    plan_ui_lookup["sleep"] = PlanUI(
+        [
+            FloatWidget("time", "time", 1.0),
+        ]
+    )
+    plan_ui_lookup["mv"] = PlanUI(
+        [
+            MvArgsWidget(),
+        ]
+    )
+    plan_ui_lookup["grid_scan_wp"] = PlanUI(
         [
             MetadataWidget(),
             DeviceListWidget(),
-            OpaSelectorWidget(),
-            SpectrometerWidget(include_center=False),
+            GridscanArgsWidget(),
+            ConstantWidget(),
         ]
     )
-    opa=OpaSelectorWidget()
-    plan_ui_lookup["run_setpoint"] = PlanUI(
+    plan_ui_lookup["rel_grid_scan_wp"] = PlanUI(
         [
             MetadataWidget(),
             DeviceListWidget(),
-            opa,
-            OpaMotorSelectorWidget(opa_selector=opa),
-            FloatWidget("Width", "width", 1),
-            IntWidget("Npts", "npts", 11),
-            SpectrometerWidget(include_center=False),
+            GridscanArgsWidget(),
+            ConstantWidget(),
         ]
     )
-    opa=OpaSelectorWidget()
-    plan_ui_lookup["run_intensity"] = PlanUI(
+    plan_ui_lookup["scan_wp"] = PlanUI(
         [
             MetadataWidget(),
             DeviceListWidget(),
-            opa,
-            OpaMotorSelectorWidget(opa_selector=opa),
-            FloatWidget("Width", "width", 1),
-            IntWidget("Npts", "npts", 11),
-            SpectrometerWidget(include_center=False),
+            ScanArgsWidget(),
+            IntWidget("Npts", "num", 11),
+            ConstantWidget(),
         ]
     )
-    opa=OpaSelectorWidget()
-    plan_ui_lookup["run_holistic"] = PlanUI(
+    plan_ui_lookup["rel_scan_wp"] = PlanUI(
         [
             MetadataWidget(),
             DeviceListWidget(),
-            opa,
-            OpaMotorSelectorWidget(opa_selector=opa),
-            OpaMotorSelectorWidget(opa_selector=opa),
-            FloatWidget("Width", "width", 1),
-            IntWidget("Npts", "npts", 11),
-            SpectrometerWidget(include_center=False),
+            ScanArgsWidget(),
+            IntWidget("Npts", "num", 11),
+            ConstantWidget(),
         ]
     )
-    opa=OpaSelectorWidget()
-    plan_ui_lookup["motortune"] = PlanUI(
+    plan_ui_lookup["list_scan_wp"] = PlanUI(
         [
             MetadataWidget(),
             DeviceListWidget(),
-            opa,
-            BoolWidget("Use Tune Points", "use_tune_points"),
-            OpaMotorFullWidget(opa_selector=opa),
-            SpectrometerWidget(),
+            ListscanArgsWidget(),
+            ConstantWidget(),
         ]
     )
+    plan_ui_lookup["rel_list_scan_wp"] = PlanUI(
+        [
+            MetadataWidget(),
+            DeviceListWidget(),
+            ListscanArgsWidget(),
+            ConstantWidget(),
+        ]
+    )
+    plan_ui_lookup["list_grid_scan_wp"] = PlanUI(
+        [
+            MetadataWidget(),
+            DeviceListWidget(),
+            ListscanArgsWidget(),
+            ConstantWidget(),
+        ]
+    )
+    plan_ui_lookup["rel_list_grid_scan_wp"] = PlanUI(
+        [
+            MetadataWidget(),
+            DeviceListWidget(),
+            ListscanArgsWidget(),
+            ConstantWidget(),
+        ]
+    )
+    plan_ui_lookup["count"] = PlanUI(
+        [
+            MetadataWidget(),
+            DeviceListWidget(),
+            IntWidget("Npts", "num", 1),
+            FloatWidget("Delay", "delay", 0),
+        ]
+    )
+
+    if devices_with_deps:
+        plan_ui_lookup["run_tune_test"] = PlanUI(
+            [
+                MetadataWidget(),
+                DeviceListWidget(),
+                OpaSelectorWidget(),
+                SpectrometerWidget(include_center=False),
+            ]
+        )
+        opa=OpaSelectorWidget()
+        plan_ui_lookup["run_setpoint"] = PlanUI(
+            [
+                MetadataWidget(),
+                DeviceListWidget(),
+                opa,
+                OpaMotorSelectorWidget(opa_selector=opa),
+                FloatWidget("Width", "width", 1),
+                IntWidget("Npts", "npts", 11),
+                SpectrometerWidget(include_center=False),
+            ]
+        )
+        opa=OpaSelectorWidget()
+        plan_ui_lookup["run_intensity"] = PlanUI(
+            [
+                MetadataWidget(),
+                DeviceListWidget(),
+                opa,
+                OpaMotorSelectorWidget(opa_selector=opa),
+                FloatWidget("Width", "width", 1),
+                IntWidget("Npts", "npts", 11),
+                SpectrometerWidget(include_center=False),
+            ]
+        )
+        opa=OpaSelectorWidget()
+        plan_ui_lookup["run_holistic"] = PlanUI(
+            [
+                MetadataWidget(),
+                DeviceListWidget(),
+                opa,
+                OpaMotorSelectorWidget(opa_selector=opa),
+                OpaMotorSelectorWidget(opa_selector=opa),
+                FloatWidget("Width", "width", 1),
+                IntWidget("Npts", "npts", 11),
+                SpectrometerWidget(include_center=False),
+            ]
+        )
+        opa=OpaSelectorWidget()
+        plan_ui_lookup["motortune"] = PlanUI(
+            [
+                MetadataWidget(),
+                DeviceListWidget(),
+                opa,
+                BoolWidget("Use Tune Points", "use_tune_points"),
+                OpaMotorFullWidget(opa_selector=opa),
+                SpectrometerWidget(),
+            ]
+        )
+
+    # TODO: Reload current UI state
+plans_allowed_updated.connect(update_plan_ui)
+devices_allowed_updated.connect(update_devices)
