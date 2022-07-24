@@ -46,6 +46,8 @@ class GUI(QtCore.QObject):
         self.update_ui()
         somatic.signals.queue_updated.connect(self.update_queue)
         somatic.signals.history_updated.connect(self.update_history)
+        somatic.signals.plans_allowed_updated.connect(self.rebuild_plan_ui)
+        somatic.signals.devices_allowed_updated.connect(self.rebuild_plan_ui)
 
     def add_button_to_table(self, i, j, text, color):
         button = pw.SetButton(text, color=color)
@@ -217,14 +219,16 @@ class GUI(QtCore.QObject):
         self.update_presets()
 
 
-
     def create_plan_frame(self):
         frame = QtWidgets.QWidget()
         frame.setLayout(QtWidgets.QVBoxLayout())
         layout = frame.layout()
         layout.setContentsMargins(0, 0, 0, 0)
         input_table = pw.InputTable()
-        allowed_plans = RM.plans_allowed()
+        try:
+            allowed_plans = RM.plans_allowed()
+        except:
+            allowed_plans = {"plans_allowed": {"count": None}}
         allowed_values = allowed_plans["plans_allowed"].keys()
         self.plan_combo = pc.Combo(allowed_values=allowed_values)
         self.plan_combo.updated.connect(self.on_plan_selected)
@@ -239,13 +243,29 @@ class GUI(QtCore.QObject):
         layout.addWidget(append_button)
         return frame
 
-    def on_append_to_queue(self):
+    def rebuild_plan_ui(self):
+        for frame in self.type_frames.values():
+            self.settings_layout.removeWidget(frame)
+            frame.hide()
+            frame.close()
+        self.type_frames["plan"] = self.create_plan_frame()
+        for frame in self.type_frames.values():
+            self.settings_layout.insertWidget(8, frame)
+            frame.hide()
+        self.on_load_item(self.get_plan().to_dict())
+        self.update_type()
+
+    def get_plan(self):
         plan_name = self.plan_combo.read()
         widget = self.plan_widgets[plan_name]
         kwargs = widget.kwargs
         meta = kwargs.pop("md", {})
         plan = BPlan(plan_name, *widget.args, **kwargs)
         plan.meta = meta
+        return plan
+
+    def on_append_to_queue(self):
+        plan = self.get_plan()
         RM.item_add(plan)
 
     def on_queue_start_clicked(self):
