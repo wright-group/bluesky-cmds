@@ -65,6 +65,7 @@ class LogWidget(QtWidgets.QWidget):
         self.app = app
         self.textedit = te = QtWidgets.QPlainTextEdit(self)
         # Set whatever the default monospace font is for the platform
+        te.setStyleSheet(f"QPlainTextEdit{{background-color: {colors['background']}; color: {colors['text_light']};}}")
         f = QtGui.QFont('nosuchfont')
         f.setStyleHint(f.Monospace)
         te.setFont(f)
