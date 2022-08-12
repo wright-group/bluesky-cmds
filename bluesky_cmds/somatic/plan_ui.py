@@ -719,13 +719,23 @@ class OpaMotorAxis(pw.InputTable):
         self.add("Width", self.width)
         self.npts = pc.Number(npts, decimals=0)
         self.add("npts", self.npts)
-
         self.opa_selector.input.updated.connect(self.on_opa_updated)
 
     @property
     def kwargs(self):
         # TODO 'static' method does not work so I don't give it a gui element yet -- 2022-05-16 KFS
         return {"method": "scan", "center": self.center.read(), "width": self.width.read(), "npts": int(self.npts.read())}
+
+    @kwargs.setter
+    def kwargs(self, value):
+        print(f'VALUE: {value}')
+        if "motor" in value:
+            if "center" in value:
+                self.center.write(value["motor"]["center"])
+            if "width" in value:
+                self.width.write(value["motor"]["width"])
+            if "npts" in value:
+                self.npts.write(value["motor"]["npts"])
 
     def on_opa_updated(self):
         self.motor.set_allowed_values(devices_all_json[self.opa_selector.args[0]]["components"].keys())
@@ -740,8 +750,6 @@ class OpaMotorFullWidget(GenericScanArgsWidget):
         self.kwarg = "motors"
 
     def add_axis(self, motor=None, method="scan", center=0, width=1, npts=11):
-        if not motor:
-            motor = devices_movable[0]
         axis = OpaMotorAxis(motor, method, center, width, npts, opa_selector=self.opa_selector)
         self.axes.append(axis)
         self.axis_container_widget.layout().addWidget(axis)
@@ -761,8 +769,6 @@ class OpaMotorFullWidget(GenericScanArgsWidget):
         if "motors" in value:
             for mot, params in value["motors"].items():
                 self.add_axis(motor=mot, **params)
-
-
 
 
 class SpectrometerWidget(pw.InputTable):
@@ -822,6 +828,20 @@ class SpectrometerWidget(pw.InputTable):
             if k in self.used[method] or k == "method"
         }
         return {self.name: out}
+
+    @kwargs.setter
+    def kwargs(self, value):
+        if value[self.name]:
+            if "device" in value[self.name]:
+                self.device.set_allowed_values([value[self.name]["device"]])
+            if "method" in value[self.name]:
+                self.method.set_allowed_values([value[self.name]["method"]])
+            if "center" in value[self.name]:
+                self.center.write(value[self.name]["center"])
+            if "width" in value[self.name]:
+                self.width.write(value[self.name]["width"])
+            if "npts" in value[self.name]:
+                self.npts.write(value[self.name]["npts"])
 
     @property
     def args(self):
