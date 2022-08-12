@@ -728,7 +728,6 @@ class OpaMotorAxis(pw.InputTable):
 
     @kwargs.setter
     def kwargs(self, value):
-        print(f'VALUE: {value}')
         if "motor" in value:
             if "center" in value:
                 self.center.write(value["motor"]["center"])
