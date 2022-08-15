@@ -289,7 +289,7 @@ class EnumWidget(SingleWidget):
     def args(self, arg):
         if arg:
             for k, v in self.options.items():
-                if arg == v:
+                if arg[0] == v:
                     self.input.write(k)
                     break
 
