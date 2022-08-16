@@ -428,6 +428,8 @@ class Constant(pw.InputTable):
             del coeffs[k]
             if isinstance(k, sympy.Number):
                 coeffs[None] = float(k * v)
+            elif isinstance(k, str):
+                coeffs[k] = float(v)
             else:
                 coeffs[k.name] = float(v)
         return [(v, k) for k, v in coeffs.items()]

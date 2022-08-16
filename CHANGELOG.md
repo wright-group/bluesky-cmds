@@ -4,6 +4,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Fixed
+- Error that caused empty constant terms to be inserted into the queue
+
 ## [2022.7.0]
 
 Initial release of bluesky-cmds, the origins of this application lie with [yaqc-cmds](https://github.com/wright-group/yaqc-cmds).
