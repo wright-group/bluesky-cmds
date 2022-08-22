@@ -832,9 +832,9 @@ class SpectrometerWidget(pw.InputTable):
     def kwargs(self, value):
         if value[self.name]:
             if "device" in value[self.name]:
-                self.device.associate(value[self.name]["device"])
+                self.device.write(value[self.name]["device"])
             if "method" in value[self.name]:
-                self.method.associate([value[self.name]["method"]])
+                self.method.write([value[self.name]["method"]])
             if "center" in value[self.name]:
                 self.center.write(value[self.name]["center"])
             if "width" in value[self.name]:
