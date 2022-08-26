@@ -289,7 +289,7 @@ class EnumWidget(SingleWidget):
     def args(self, arg):
         if arg:
             for k, v in self.options.items():
-                if arg == v:
+                if arg[0] == v:
                     self.input.write(k)
                     break
 
@@ -721,7 +721,6 @@ class OpaMotorAxis(pw.InputTable):
         self.add("Width", self.width)
         self.npts = pc.Number(npts, decimals=0)
         self.add("npts", self.npts)
-
         self.opa_selector.input.updated.connect(self.on_opa_updated)
 
     @property
@@ -742,8 +741,6 @@ class OpaMotorFullWidget(GenericScanArgsWidget):
         self.kwarg = "motors"
 
     def add_axis(self, motor=None, method="scan", center=0, width=1, npts=11):
-        if not motor:
-            motor = devices_movable[0]
         axis = OpaMotorAxis(motor, method, center, width, npts, opa_selector=self.opa_selector)
         self.axes.append(axis)
         self.axis_container_widget.layout().addWidget(axis)
@@ -763,8 +760,6 @@ class OpaMotorFullWidget(GenericScanArgsWidget):
         if "motors" in value:
             for mot, params in value["motors"].items():
                 self.add_axis(motor=mot, **params)
-
-
 
 
 class SpectrometerWidget(pw.InputTable):
@@ -824,6 +819,20 @@ class SpectrometerWidget(pw.InputTable):
             if k in self.used[method] or k == "method"
         }
         return {self.name: out}
+
+    @kwargs.setter
+    def kwargs(self, value):
+        if value[self.name]:
+            if "device" in value[self.name]:
+                self.device.write(value[self.name]["device"])
+            if "method" in value[self.name]:
+                self.method.write([value[self.name]["method"]])
+            if "center" in value[self.name]:
+                self.center.write(value[self.name]["center"])
+            if "width" in value[self.name]:
+                self.width.write(value[self.name]["width"])
+            if "npts" in value[self.name]:
+                self.npts.write(value[self.name]["npts"])
 
     @property
     def args(self):
