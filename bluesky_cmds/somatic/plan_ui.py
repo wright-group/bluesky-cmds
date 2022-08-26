@@ -726,16 +726,6 @@ class OpaMotorAxis(pw.InputTable):
         # TODO 'static' method does not work so I don't give it a gui element yet -- 2022-05-16 KFS
         return {"method": "scan", "center": self.center.read(), "width": self.width.read(), "npts": int(self.npts.read())}
 
-    @kwargs.setter
-    def kwargs(self, value):
-        if "motor" in value:
-            if "center" in value:
-                self.center.write(value["motor"]["center"])
-            if "width" in value:
-                self.width.write(value["motor"]["width"])
-            if "npts" in value:
-                self.npts.write(value["motor"]["npts"])
-
     def on_opa_updated(self):
         self.motor.set_allowed_values(devices_all_json[self.opa_selector.args[0]]["components"].keys())
 
