@@ -26,7 +26,7 @@ class SignalContainer(QtCore.QObject):
         status = RM.status()
         if not status:
             return
-        if not status.get("worker_environment_exists"):
+        if not status.get("worker_environment_exists") and status.get("manager_state") == "idle":
             RM.environment_open()
         if self.status.get("devices_allowed_uid") != status.get("devices_allowed_uid"):
             self.devices_allowed_updated.emit()

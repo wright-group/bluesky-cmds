@@ -48,9 +48,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.data_folder = pathlib.Path.home() / "bluesky-cmds-data"
         self.data_folder.mkdir(exist_ok=True)
         # somatic system
-        from bluesky_cmds.somatic import queue
+        from bluesky_cmds.somatic import queue, signals
 
         self.queue_gui = queue.GUI(self.queue_widget, self.queue_message)
+        signals.manager_state_updated.connect(self.queue_message.setText)
 
     def _create_main_frame(self):
         self.main_frame = QtWidgets.QWidget(parent=self)

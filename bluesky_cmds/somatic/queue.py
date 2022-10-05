@@ -39,6 +39,9 @@ class GUI(QtCore.QObject):
         self.clear_choice_window = pw.ChoiceWindow(
             "QUEUE CLEAR", button_labels=["no", "YES"]
         )
+        self.env_close_choice_window = pw.ChoiceWindow(
+            "ENVIRONMENT CLOSE", button_labels=["no", "YES"]
+        )
         # queue
         self.queue = []
         self.history = []
@@ -125,6 +128,11 @@ class GUI(QtCore.QObject):
         settings_layout.addWidget(self.interrupt)
         somatic.signals.queue_relinquishing_control.connect(self.interrupt.hide)
         somatic.signals.queue_taking_control.connect(self.interrupt.show)
+        line = pw.Line("H")
+        settings_layout.addWidget(line)
+        self.env_close = pw.SetButton("CLOSE ENVIRONMENT", "stop")
+        self.env_close.clicked.connect(self.on_env_close_clicked)
+        settings_layout.addWidget(self.env_close)
         line = pw.Line("H")
         settings_layout.addWidget(line)
         self.clear = pw.SetButton("CLEAR QUEUE", "stop")
@@ -228,7 +236,7 @@ class GUI(QtCore.QObject):
         try:
             allowed_plans = RM.plans_allowed()
         except:
-            allowed_plans = {"plans_allowed": {"count": None}}
+            allowed_plans = {"plans_allowed": {"connecting...": None}}
         allowed_values = allowed_plans["plans_allowed"].keys()
         self.plan_combo = pc.Combo(allowed_values=allowed_values)
         self.plan_combo.updated.connect(self.on_plan_selected)
@@ -250,7 +258,8 @@ class GUI(QtCore.QObject):
             frame.close()
         self.type_frames["plan"] = self.create_plan_frame()
         for frame in self.type_frames.values():
-            self.settings_layout.insertWidget(8, frame)
+            # TODO remove magic number
+            self.settings_layout.insertWidget(10, frame)
             frame.hide()
         self.on_load_item(self.get_plan().to_dict())
         self.update_type()
@@ -297,6 +306,18 @@ class GUI(QtCore.QObject):
         index = self.clear_choice_window.show()
         if index == 1:
             RM.history_clear()
+
+    def on_env_close_clicked(self):
+        self.env_close_choice_window.set_text("Do you wish to close the worker environment?")
+        if RM.status().get("manager_state") == "idle":
+            index = self.env_close_choice_window.show()
+            if index == 1:
+                RM.environment_close()
+        else:
+            input_dia = QtWidgets.QInputDialog()
+            response, ok = input_dia.getText(self.parent_widget, "Environment Destroy", "The queue is not idle, and so a graceful environment close is not possible.\nIf you would like to destroy the environment anyway, type 'destroy':\n")
+            if response.lower() == "destroy":
+                RM.environment_destroy()
 
     def on_index_changed(self, row, new_index):
         item = self.queue[row]
