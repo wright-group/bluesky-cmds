@@ -358,6 +358,10 @@ class Number(PyCMDS_Object):
     def set_units(self, units):
         if self.has_widget:
             allowed = [self.units_widget.itemText(i) for i in range(self.units_widget.count())]
+            if units not in allowed:
+                self.units = units
+                self.give_units_combo(self.units_widget)
+                allowed = [self.units_widget.itemText(i) for i in range(self.units_widget.count())]
             index = allowed.index(units)
             self.units_widget.setCurrentIndex(index)
         else:
@@ -394,6 +398,7 @@ class Number(PyCMDS_Object):
         self.units_widget = units_combo_widget
         # add items
         unit_types = [self.units] + list(wt_units.get_valid_conversions(self.units))
+        self.units_widget.clear()
         self.units_widget.addItems(unit_types)
         # set current item
         self.units_widget.setCurrentIndex(unit_types.index(self.units))

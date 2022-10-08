@@ -3,6 +3,7 @@ import itertools
 import json
 
 import toolz
+import numpy as np
 from qtpy import QtWidgets
 from .comms import RM
 from .signals import plans_allowed_updated, devices_allowed_updated
@@ -28,6 +29,18 @@ def get_units(device):
     return hwproxy_request("describe", {"device": base_name})[0].get("return", {}).get(key_name, {}).get(
         "units", None
     )
+
+def get_limits(device):
+    if "." in device:
+        base_name = device.split(".")[0]
+        key_name = device.replace(".", "_")
+    else:
+        base_name = key_name = device
+    describe = hwproxy_request("describe", {"device": base_name})[0].get("return", {}).get(key_name, {})
+    low = describe.get("lower_ctrl_limit", -np.inf)
+    hi = describe.get("upper_ctrl_limit", np.inf)
+    return (low, hi)
+
 
 
 devices_all = {}
@@ -497,22 +510,31 @@ class GenericScanArgsWidget:
 
 class MvAxis(pw.InputTable):
     def __init__(self, hardware, position):
-        # TODO: units?
         super().__init__()
         self.add("Axis", None)
         self.hardware = pc.Combo(devices_movable)
         self.hardware.write(hardware)
         self.add("Hardware", self.hardware)
-        self.position = pc.Number()
+        self.native = get_units(hardware)
+        self.position = pc.Number(units=self.native)
+        self.position.limits.write(*get_limits(self.hardware.read()), self.native)
         self.position.write(position)
         self.add("Position", self.position)
+        self.hardware.updated.connect(self.set_unit)
 
     @property
     def args(self):
         return [
             self.hardware.read(),
-            self.position.read(),
+            self.position.read(self.native),
         ]
+
+    def set_unit(self):
+        self.native = get_units(self.hardware.read())
+        self.position.set_units(self.native)
+        self.position.limits.units = self.native
+        self.position.limits.write(*get_limits(self.hardware.read()), self.native)
+        
 
 class MvArgsWidget(GenericScanArgsWidget):
     def __init__(self):
