@@ -836,6 +836,7 @@ class SpectrometerWidget(pw.InputTable):
                 "method": method,
                 "center": self.center.read(),
                 "width": self.width.read(),
+                "units": self.units.read(),
                 "npts": int(self.npts.read()),
             }.items()
             if k in self.used[method] or k == "method"
@@ -853,6 +854,8 @@ class SpectrometerWidget(pw.InputTable):
                 self.center.write(value[self.name]["center"])
             if "width" in value[self.name]:
                 self.width.write(value[self.name]["width"])
+            if "units" in value[self.name]:
+                self.units.write(value[self.name]["units"])
             if "npts" in value[self.name]:
                 self.npts.write(value[self.name]["npts"])
 

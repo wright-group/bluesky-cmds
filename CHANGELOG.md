@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ### Fixed
 - Error that caused empty constant terms to be inserted into the queue
+- Correctly send units for tuning spectrometer axes
 
 ## [2022.7.0]
 
