@@ -14,10 +14,11 @@ from bluesky_widgets.qt.threading import wait_for_workers_to_quit
 import WrightTools as wt
 import bluesky_cmds.project.project_globals as g
 import bluesky_cmds.project.widgets as pw
-import bluesky_cmds.project.classes as pc
 import bluesky_cmds.somatic as somatic
 from bluesky_cmds.__main__ import config
 from bluesky_cmds._main_window import window
+
+import qtypes
 
 from .logging import getLogger
 logger = getLogger("plot")
@@ -35,16 +36,16 @@ class GUI(QtCore.QObject):
         self.main_widget = window.plot_widget
         # create main daq tab
         main_widget = self.main_widget
-        layout = QtWidgets.QHBoxLayout()
-        layout.setContentsMargins(0, 10, 0, 0)
-        main_widget.setLayout(layout)
+        self.layout = QtWidgets.QHBoxLayout()
+        self.layout.setContentsMargins(0, 10, 0, 0)
+        main_widget.setLayout(self.layout)
         # display
         # container widget
         display_container_widget = pw.ExpandingWidget()
         display_container_widget.setLayout(QtWidgets.QVBoxLayout())
         display_layout = display_container_widget.layout()
         display_layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(display_container_widget)
+        self.layout.addWidget(display_container_widget)
         # big number
         big_number_container_widget = QtWidgets.QWidget()
         big_number_container_widget.setLayout(QtWidgets.QHBoxLayout())
@@ -63,60 +64,50 @@ class GUI(QtCore.QObject):
         display_layout.addWidget(self.plot_widget)
         # vertical line
         line = pw.line("V")
-        layout.addWidget(line)
-        # settings
-        settings_container_widget = QtWidgets.QWidget()
-        settings_scroll_area = pw.scroll_area()
-        settings_scroll_area.setWidget(settings_container_widget)
-        settings_scroll_area.setMinimumWidth(300)
-        settings_scroll_area.setMaximumWidth(300)
-        settings_container_widget.setLayout(QtWidgets.QVBoxLayout())
-        self.settings_layout = settings_container_widget.layout()
-        self.settings_layout.setContentsMargins(5, 5, 5, 5)
-        layout.addWidget(settings_scroll_area)
+        self.layout.addWidget(line)
 
     def create_settings(self):
         # display settings
-        input_table = pw.InputTable()
-        input_table.add("Display", None)
-        self.channel = pc.Combo()
-        input_table.add("Channel", self.channel)
-        self.axis = pc.Combo()
-        input_table.add("X-Axis", self.axis)
-        self.axis_units = pc.Combo()
-        input_table.add("X-Units", self.axis_units)
-        self.settings_layout.addWidget(input_table)
-        # global daq settings
-        input_table = pw.InputTable()
-        # input_table.add("ms Wait", ms_wait)
-        input_table.add("Scan", None)
-        # input_table.add("Loop Time", loop_time)
-        self.idx_string = pc.String(initial_value="None", display=True)
-        input_table.add("Scan Index", self.idx_string)
-        self.settings_layout.addWidget(input_table)
-        # stretch
-        self.settings_layout.addStretch(1)
+        input_table = qtypes.Null()
+        tree_widget = qtypes.TreeWidget(input_table)
+        display = qtypes.Null("Display")
+        self.channel = qtypes.Enum("Channel")
+        display.append(self.channel)
+        self.axis = qtypes.Enum("X-Axis")
+        display.append(self.axis)
+        self.axis_units = qtypes.Enum("X-Units")
+        display.append(self.axis_units)
+        input_table.append(display)
+        scan = qtypes.Null("Scan")
+        self.idx_string = qtypes.String("Scan Index", value="None", disabled=True)
+        scan.append(self.idx_string)
+        input_table.append(scan)
+        tree_widget[0].expand()
+        tree_widget.setMinimumWidth(250)
+        self.layout.addWidget(tree_widget)
 
     def set_units_map(self, units_map):
         self._units_map = units_map
-        self.on_axis_updated()
+        self.on_axis_updated({"value": self.axis.get_value()})
 
-    def on_axis_updated(self):
-        units = self._units_map.get(self.axis.read())
+    def on_axis_updated(self, value):
+        units = self._units_map.get(value["value"])
         units = [units] + list(wt.units.get_valid_conversions(units))
-        self.axis_units.set_allowed_values(units)
+        self.axis_units.set({"allowed": units})
 
-    def update_plot(self):
+    def update_plot(self, _=None):
         # data
         if not plot_callback.events:
             return
-        x_units = self.axis_units.read()
-        axis = self.axis.read()
-        channel = self.channel.read()
+        x_units = self.axis_units.get_value()
+        axis = self.axis.get_value()
+        channel = self.channel.get_value()
         self.plot_widget.clear()
 
         def plot_0d(start, stop, color="c"):
-            stop = min(stop, len(plot_callback.events))
+            stop = min(stop, len(plot_callback.events)-1)
+            from pprint import pprint
+            pprint(plot_callback.events[stop])
             if axis == "time":
                 x = [plot_callback.events[i]["time"] for i in range(start, stop)]
             else:
@@ -182,7 +173,7 @@ class GUI(QtCore.QObject):
             ncolors = min(len(plot_callback.events), 5)
             colors = np.linspace([60, 60, 60], [0, 160, 160], ncolors, dtype="u1")
             colors[-1] = [0, 255, 255]
-            for e, c in zip(range(-5, 0), colors):
+            for e, c in zip(range(max(-5, -1 * len(plot_callback.events)), 0), colors):
                 plot_1d(plot_callback.events[e], c)
 
         num = plot_callback.events[-1]["data"][channel]
@@ -226,7 +217,7 @@ class PlotCallback(CallbackBase):
             # Default if the hints are not given
             self.dimensions = ["time"]
             self.all_dimensions = ["time"]
-        gui.axis.set_allowed_values(self.dimensions)
+        gui.axis.set({"allowed": self.dimensions})
 
         if self.start_doc.get("shape"):
             self.shape = self.start_doc["shape"]
@@ -248,7 +239,7 @@ class PlotCallback(CallbackBase):
 
         
         self.dimensions.extend([dim for dim, val in  self.descriptor_doc.get("data_keys", {}).items() if val.get("independent")])
-        gui.axis.set_allowed_values(self.dimensions)
+        gui.axis.set({"allowed": self.dimensions})
         self.units_map = {
             dim: self.descriptor_doc.get("data_keys", {}).get(dim, {}).get("units")
             for dim in self.dimensions
@@ -261,9 +252,11 @@ class PlotCallback(CallbackBase):
             for field in hint.get("fields", []):
                 if field not in self.all_dimensions:
                     self.channels.append(field)
-        gui.channel.set_allowed_values(self.channels)
+        gui.channel.set({"allowed": self.channels})
 
     def event(self, doc):
+        if not self.descriptor_doc:
+            return
         if doc["descriptor"] != self.descriptor_doc["uid"]:
             return
         super().event(doc)
@@ -273,7 +266,7 @@ class PlotCallback(CallbackBase):
         index = doc["seq_num"] - 1
         if self.shape and index:
             index = np.unravel_index(index, self.shape)
-        gui.idx_string.write(str(index))
+        gui.idx_string.set_value(str(index))
 
         somatic.signals.update_plot.emit()
 
@@ -294,7 +287,7 @@ g.shutdown.add_method(wait_for_workers_to_quit)
 
 somatic.signals.update_plot.connect(gui.update_plot)
 # somatic.signals.data_file_created.connect(gui.on_data_file_created)
-gui.axis.updated.connect(gui.on_axis_updated)
-gui.axis.updated.connect(gui.update_plot)
-gui.axis_units.updated.connect(gui.update_plot)
-gui.channel.updated.connect(gui.update_plot)
+gui.axis.updated_connect(gui.on_axis_updated)
+gui.axis.updated_connect(gui.update_plot)
+gui.axis_units.updated_connect(gui.update_plot)
+gui.channel.updated_connect(gui.update_plot)
