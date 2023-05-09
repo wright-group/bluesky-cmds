@@ -483,7 +483,8 @@ class GenericScanArgsWidget:
             self.remove_axis()
         for c in toolz.partition(self.partition, args):
             self.add_axis(*c)
-@property
+
+    @property
     def kwargs(self):
         return {}
 
