@@ -515,7 +515,7 @@ class MvAxis(pw.InputTable):
         self.hardware = pc.Combo(devices_movable)
         self.hardware.write(hardware)
         self.add("Hardware", self.hardware)
-        self.native = get_units(hardware)
+        self.native = get_units(hardware.read())
         self.position = pc.Number(units=self.native)
         self.position.limits.write(*get_limits(self.hardware.read()), self.native)
         self.position.write(position)
