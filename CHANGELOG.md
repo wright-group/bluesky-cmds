@@ -5,6 +5,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 ## [Unreleased]
 
 ### Fixed
+- Errors that caused "mv plan" form to freeze the program when hardware was selected
 - Error that caused empty constant terms to be inserted into the queue
 - Correctly send units for tuning spectrometer axes
 
