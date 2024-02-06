@@ -323,7 +323,6 @@ class Number(PyCMDS_Object):
         # value
         self.value.lock()
         old_val = self.value.read()
-        print(f"old_val {old_val}, self.units {self.units}, dest {destination_units}")
         new_val = wt_units.converter(old_val, self.units, str(destination_units))
         self.value.unlock()
         self.value.write(new_val)
