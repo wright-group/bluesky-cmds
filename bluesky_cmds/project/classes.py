@@ -323,6 +323,7 @@ class Number(PyCMDS_Object):
         # value
         self.value.lock()
         old_val = self.value.read()
+        print(f"old_val {old_val}, self.units {self.units}, dest {destination_units}")
         new_val = wt_units.converter(old_val, self.units, str(destination_units))
         self.value.unlock()
         self.value.write(new_val)
@@ -358,8 +359,10 @@ class Number(PyCMDS_Object):
     def set_units(self, units):
         if self.has_widget:
             allowed = [self.units_widget.itemText(i) for i in range(self.units_widget.count())]
+            print(f"allowed is {allowed}, units are {units}")
             if units not in allowed:
                 self.units = units
+                print(f"here, units are {units}")
                 self.give_units_combo(self.units_widget)
                 allowed = [self.units_widget.itemText(i) for i in range(self.units_widget.count())]
             index = allowed.index(units)
@@ -403,8 +406,15 @@ class Number(PyCMDS_Object):
         # set current item
         self.units_widget.setCurrentIndex(unit_types.index(self.units))
         # associate update with conversion
+        def func():
+            print(f"here, current text is {self.units_widget.currentText()}")
+            try:
+                return self.convert(self.units_widget.currentText())
+            except:
+                return ""
         self.units_widget.currentIndexChanged.connect(
-            lambda: self.convert(self.units_widget.currentText())
+            func
+            # lambda: self.convert(self.units_widget.currentText())
         )
         # finish
         self.units_widget.setDisabled(self.disabled_units)
