@@ -365,6 +365,8 @@ class Number(PyCMDS_Object):
                 print(f"here, units are {units}")
                 self.give_units_combo(self.units_widget)
                 allowed = [self.units_widget.itemText(i) for i in range(self.units_widget.count())]
+                print(f"allowed is {allowed}, units are {units}")
+                return
             index = allowed.index(units)
             self.units_widget.setCurrentIndex(index)
         else:
@@ -402,16 +404,17 @@ class Number(PyCMDS_Object):
         # add items
         unit_types = [self.units] + list(wt_units.get_valid_conversions(self.units))
         self.units_widget.clear()
+        self.units_widget.disconnect()
         self.units_widget.addItems(unit_types)
         # set current item
         self.units_widget.setCurrentIndex(unit_types.index(self.units))
+        allowed = [self.units_widget.itemText(i) for i in range(self.units_widget.count())]
+
+        print(f"are indices equal? {unit_types.index(self.units)} == {allowed.index(self.units)}?")
         # associate update with conversion
         def func():
             print(f"here, current text is {self.units_widget.currentText()}")
-            try:
-                return self.convert(self.units_widget.currentText())
-            except:
-                return ""
+            self.convert(self.units)  # self.units_widget.currentText())
         self.units_widget.currentIndexChanged.connect(
             func
             # lambda: self.convert(self.units_widget.currentText())
