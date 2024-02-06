@@ -530,10 +530,7 @@ class MvAxis(pw.InputTable):
         ]
 
     def set_unit(self):
-        print(f"setting units in table: {self.hardware}, {self.hardware.read()}")
-        print(f"get_units(self.hardware.read()) = {get_units(self.hardware.read())}")
         self.native = get_units(self.hardware.read())
-        print(f"setting units to self.native: {self.native}")
         self.position.set_units(self.native)
         self.position.limits.units = self.native
         self.position.limits.write(*get_limits(self.hardware.read()), self.native)
