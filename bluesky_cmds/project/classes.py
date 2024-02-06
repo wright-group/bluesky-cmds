@@ -406,18 +406,14 @@ class Number(PyCMDS_Object):
         self.units_widget.addItems(unit_types)
         # set current item
         self.units_widget.setCurrentIndex(unit_types.index(self.units))
-        allowed = [self.units_widget.itemText(i) for i in range(self.units_widget.count())]
-
-        print(f"are indices equal? {unit_types.index(self.units)} == {allowed.index(self.units)}?")
         # associate update with conversion
-        def func():
+        def unit_change_handler():
             units = self.units_widget.currentText()
             if not units:  # handle non-initialized text
                 units = self.units
             self.convert(units)
         self.units_widget.currentIndexChanged.connect(
-            func
-            # lambda: self.convert(self.units_widget.currentText())
+            unit_change_handler
         )
         # finish
         self.units_widget.setDisabled(self.disabled_units)
