@@ -362,6 +362,7 @@ class Number(PyCMDS_Object):
             print(f"allowed is {allowed}, units are {units}")
             if units not in allowed:  # we changed our hardware and it has diff units
                 self.units = units
+                self.units_widget.set_allowed_values([self.units] + list(wt_units.get_valid_conversions(self.units)))
                 print(f"here, units are {units}")
                 self.give_units_combo(self.units_widget)
                 allowed = [self.units_widget.itemText(i) for i in range(self.units_widget.count())]
@@ -400,16 +401,18 @@ class Number(PyCMDS_Object):
     def give_units_combo(self, units_combo_widget):
         self.units_widget = units_combo_widget
         # add items
-        unit_types = [self.units] + list(wt_units.get_valid_conversions(self.units))
+        unit_types = [self.units_widget.itemText(i) for i in range(self.units_widget.count())]  # [self.units] + list(wt_units.get_valid_conversions(self.units))
+        # self.units_widget.currentIndexChanged.disconnect()
         self.units_widget.clear()
-        self.units_widget.disconnect()
         self.units_widget.addItems(unit_types)
         # set current item
         self.units_widget.setCurrentIndex(unit_types.index(self.units))
+        print(f"currentText: {self.units_widget.currentText()}")
         # associate update with conversion
         def unit_change_handler():
             units = self.units_widget.currentText()
             if not units:  # handle non-initialized text
+                print("I didn't have any currentText")
                 units = self.units
             self.convert(units)
         self.units_widget.currentIndexChanged.connect(
