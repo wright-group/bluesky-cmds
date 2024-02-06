@@ -4,6 +4,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- The selectable users in the plan form are now customizable in the config 
+
 ### Fixed
 - Error that caused empty constant terms to be inserted into the queue
 - Correctly send units for tuning spectrometer axes
