@@ -358,10 +358,12 @@ class Number(PyCMDS_Object):
     def set_units(self, units):
         if self.has_widget:
             allowed = [self.units_widget.itemText(i) for i in range(self.units_widget.count())]
-            if units not in allowed:
+            if units not in allowed:  # we need to change the units menu
                 self.units = units
+                # new callback needed
+                self.units_widget.currentIndexChanged.disconnect(self.unit_change_handler)
                 self.give_units_combo(self.units_widget)
-                allowed = [self.units_widget.itemText(i) for i in range(self.units_widget.count())]
+                return
             index = allowed.index(units)
             self.units_widget.setCurrentIndex(index)
         else:
@@ -394,17 +396,22 @@ class Number(PyCMDS_Object):
         self.has_widget = True
         self._set_limits()
 
+    def unit_change_handler(self):
+        units = self.units_widget.currentText()
+        if not units:  # handle non-initialized text
+            units = self.units
+        self.convert(units)
+
     def give_units_combo(self, units_combo_widget):
         self.units_widget = units_combo_widget
+        self.units_widget.clear()
         # add items
         unit_types = [self.units] + list(wt_units.get_valid_conversions(self.units))
-        self.units_widget.clear()
         self.units_widget.addItems(unit_types)
-        # set current item
         self.units_widget.setCurrentIndex(unit_types.index(self.units))
         # associate update with conversion
         self.units_widget.currentIndexChanged.connect(
-            lambda: self.convert(self.units_widget.currentText())
+            self.unit_change_handler
         )
         # finish
         self.units_widget.setDisabled(self.disabled_units)

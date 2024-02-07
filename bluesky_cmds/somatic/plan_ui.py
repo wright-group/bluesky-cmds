@@ -520,7 +520,7 @@ class MvAxis(pw.InputTable):
         self.position.limits.write(*get_limits(self.hardware.read()), self.native)
         self.position.write(position)
         self.add("Position", self.position)
-        self.hardware.updated.connect(self.set_unit)
+        self.hardware.updated.connect(self.update_hardware)
 
     @property
     def args(self):
@@ -528,6 +528,10 @@ class MvAxis(pw.InputTable):
             self.hardware.read(),
             self.position.read(self.native),
         ]
+
+    def update_hardware(self):
+        self.set_unit()
+        self.position.write(0.)
 
     def set_unit(self):
         self.native = get_units(self.hardware.read())
