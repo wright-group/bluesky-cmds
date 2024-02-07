@@ -4,6 +4,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Changed
+- The selectable users in the plan form are no longer hard-coded; contol users in the config file.
+
 ### Fixed
 - Errors that caused "mv plan" form to freeze the program when hardware was selected
 - Error that caused empty constant terms to be inserted into the queue
