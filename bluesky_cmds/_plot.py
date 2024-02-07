@@ -246,7 +246,7 @@ class PlotCallback(CallbackBase):
         self.descriptor_doc = doc
         super().descriptor(doc)
 
-        
+
         self.dimensions.extend([dim for dim, val in  self.descriptor_doc.get("data_keys", {}).items() if val.get("independent")])
         gui.axis.set_allowed_values(self.dimensions)
         self.units_map = {

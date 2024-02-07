@@ -542,7 +542,7 @@ class MvAxis(pw.InputTable):
         self.position.set_units(self.native)
         self.position.limits.units = self.native
         self.position.limits.write(*get_limits(self.hardware.read()), self.native)
-        
+
 
 class MvArgsWidget(GenericScanArgsWidget):
     def __init__(self):

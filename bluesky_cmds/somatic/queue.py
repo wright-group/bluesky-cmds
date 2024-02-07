@@ -175,7 +175,7 @@ class GUI(QtCore.QObject):
         button = pw.SetButton("Append Queue Stop")
         button.clicked.connect(lambda: RM.item_add(BInst("queue_stop")))
         return button
-    
+
     def update_presets(self):
         vals = presets.get_preset_names()
         self.append_preset_button.setDisabled(False)
