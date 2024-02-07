@@ -11,17 +11,18 @@ home-page = "https://github.com/wright-group/bluesky-cmds"
 description-file = "README.md"
 classifiers = ["License :: OSI Approved :: MIT License"]
 requires-python = ">=3.7"
-requires = ["appdirs",
-            "bluesky-queueserver-api",
-            "click",
-	    "pyqtgraph",
-	    "pyside2",
-	    "qtpy",
-     	    "sympy",
-	    "toml",
-	    "toolz",
-	    "wrighttools",
-	    ]
+requires = [
+	"appdirs",
+	"bluesky-queueserver-api",
+	"click",
+	"pyqtgraph",
+	"pyside2",
+	"qtpy",
+	"sympy",
+	"toml",
+	"toolz",
+	"wrighttools",
+]
 
 [tool.flit.scripts]
 bluesky-cmds = "bluesky_cmds.__main__:main"
