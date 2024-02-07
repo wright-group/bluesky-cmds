@@ -25,6 +25,7 @@ from .__version__ import __version__
 ### main window ###############################################################
 window = None
 
+
 class MainWindow(QtWidgets.QMainWindow):
     shutdown = QtCore.Signal()
 
@@ -90,7 +91,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tabs.addTab(self.queue_widget, "Queue")
         self.tabs.addTab(self.plot_widget, "Plot")
         self.tabs.addTab(log_widget, "Logs")
-        #self.tabs.setContentsMargins(0.0, 0.0, 0.0, 0.0)
+        # self.tabs.setContentsMargins(0.0, 0.0, 0.0, 0.0)
         box.addWidget(self.tabs)
         # vertical stretch
         box.addStretch(1)
