@@ -1,5 +1,5 @@
 repos:
-  - repo: https://github.com/psf/black/black-pre-commit-mirror
+  - repo: https://github.com/psf/black
     rev: 24.1.1 # Replace by any tag/version: https://github.com/psf/black/tags
     hooks:
       - id: black
