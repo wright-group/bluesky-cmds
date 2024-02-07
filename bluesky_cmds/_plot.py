@@ -20,6 +20,7 @@ from bluesky_cmds.__main__ import config
 from bluesky_cmds._main_window import window
 
 from .logging import getLogger
+
 logger = getLogger("plot")
 
 
@@ -204,7 +205,7 @@ class PlotCallback(CallbackBase):
         self.descriptor_doc = None
         self.dimensions = []
         self.units_map = {}
-        self.slice_size = 2 ** 64
+        self.slice_size = 2**64
         self.progress_bar = g.progress_bar
 
     def start(self, doc):
@@ -236,7 +237,7 @@ class PlotCallback(CallbackBase):
         else:
             self.events = deque()
             self.shape = None
-            self.slice_size = 2 ** 64
+            self.slice_size = 2**64
 
     def descriptor(self, doc):
         # Currently assuming only one stream, thus only one descriptor doc
@@ -246,8 +247,13 @@ class PlotCallback(CallbackBase):
         self.descriptor_doc = doc
         super().descriptor(doc)
 
-
-        self.dimensions.extend([dim for dim, val in  self.descriptor_doc.get("data_keys", {}).items() if val.get("independent")])
+        self.dimensions.extend(
+            [
+                dim
+                for dim, val in self.descriptor_doc.get("data_keys", {}).items()
+                if val.get("independent")
+            ]
+        )
         gui.axis.set_allowed_values(self.dimensions)
         self.units_map = {
             dim: self.descriptor_doc.get("data_keys", {}).get(dim, {}).get("units")

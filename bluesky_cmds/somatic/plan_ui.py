@@ -26,15 +26,20 @@ def get_all_components(k, v):
         out.update(get_all_components(".".join([k, sk]), sv))
     return out
 
+
 def get_units(device):
     if "." in device:
         base_name = device.split(".")[0]
         key_name = device.replace(".", "_")
     else:
         base_name = key_name = device
-    return hwproxy_request("describe", {"device": base_name})[0].get("return", {}).get(key_name, {}).get(
-        "units", None
+    return (
+        hwproxy_request("describe", {"device": base_name})[0]
+        .get("return", {})
+        .get(key_name, {})
+        .get("units", None)
     )
+
 
 def get_limits(device):
     if "." in device:
@@ -42,11 +47,12 @@ def get_limits(device):
         key_name = device.replace(".", "_")
     else:
         base_name = key_name = device
-    describe = hwproxy_request("describe", {"device": base_name})[0].get("return", {}).get(key_name, {})
+    describe = (
+        hwproxy_request("describe", {"device": base_name})[0].get("return", {}).get(key_name, {})
+    )
     low = describe.get("lower_ctrl_limit", -np.inf)
     hi = describe.get("upper_ctrl_limit", np.inf)
     return (low, hi)
-
 
 
 devices_all = {}
@@ -54,6 +60,7 @@ devices_all_json = {}
 devices_movable = []
 devices_not_movable = []
 devices_with_deps = []
+
 
 def update_devices():
     global devices_all, devices_all_json, devices_movable, devices_not_movable, devices_with_deps
@@ -67,7 +74,6 @@ def update_devices():
     devices_not_movable = list(filter(lambda x: not devices_all[x]["is_movable"], devices_all))
     devices_with_deps = list(filter(lambda x: "components" in devices_all[x], devices_all))
     update_plan_ui()
-
 
 
 class PlanUI:
@@ -514,6 +520,7 @@ class GenericScanArgsWidget:
     def kwargs(self, kwargs):
         pass
 
+
 class MvAxis(pw.InputTable):
     def __init__(self, hardware, position):
         super().__init__()
@@ -537,7 +544,7 @@ class MvAxis(pw.InputTable):
 
     def update_hardware(self):
         self.set_unit()
-        self.position.write(0.)
+        self.position.write(0.0)
 
     def set_unit(self):
         self.native = get_units(self.hardware.read())
@@ -556,6 +563,7 @@ class MvArgsWidget(GenericScanArgsWidget):
         axis = MvAxis(hardware, position)
         self.axes.append(axis)
         self.axis_container_widget.layout().addWidget(axis)
+
 
 class GridscanAxis(pw.InputTable):
     def __init__(self, hardware, start, stop, npts, units):
@@ -714,7 +722,14 @@ class ListscanArgsWidget(GenericScanArgsWidget):
 
 class OpaSelectorWidget(EnumWidget):
     def __init__(self, name="opa"):
-        super().__init__(name, options={x:x for x in devices_with_deps if len(devices_all_json.get(x, {}).get("components", {})) > 1})
+        super().__init__(
+            name,
+            options={
+                x: x
+                for x in devices_with_deps
+                if len(devices_all_json.get(x, {}).get("components", {})) > 1
+            },
+        )
 
 
 class OpaMotorSelectorWidget(EnumWidget):
@@ -727,15 +742,12 @@ class OpaMotorSelectorWidget(EnumWidget):
         self.opa_selector.input.updated.connect(self.on_opa_selected)
         # TODO mutual exclusion
 
-
     def on_opa_selected(self):
-        motors = {
-            x: x
-            for x in devices_all_json[self.opa_selector.args[0]]["components"]
-        }
+        motors = {x: x for x in devices_all_json[self.opa_selector.args[0]]["components"]}
         if not motors:
             motors = {"None": None}
         self.options = motors
+
 
 class OpaMotorAxis(pw.InputTable):
     def __init__(self, motor, method, center, width, npts, opa_selector):
@@ -758,11 +770,17 @@ class OpaMotorAxis(pw.InputTable):
     @property
     def kwargs(self):
         # TODO 'static' method does not work so I don't give it a gui element yet -- 2022-05-16 KFS
-        return {"method": "scan", "center": self.center.read(), "width": self.width.read(), "npts": int(self.npts.read())}
+        return {
+            "method": "scan",
+            "center": self.center.read(),
+            "width": self.width.read(),
+            "npts": int(self.npts.read()),
+        }
 
     def on_opa_updated(self):
-        self.motor.set_allowed_values(devices_all_json[self.opa_selector.args[0]]["components"].keys())
-
+        self.motor.set_allowed_values(
+            devices_all_json[self.opa_selector.args[0]]["components"].keys()
+        )
 
 
 class OpaMotorFullWidget(GenericScanArgsWidget):
@@ -783,7 +801,7 @@ class OpaMotorFullWidget(GenericScanArgsWidget):
 
     @property
     def kwargs(self):
-        return {"motors":{a.motor.read(): a.kwargs for a in self.axes}}
+        return {"motors": {a.motor.read(): a.kwargs for a in self.axes}}
 
     @kwargs.setter
     def kwargs(self, value):
@@ -888,6 +906,7 @@ class SpectrometerWidget(pw.InputTable):
 
 plan_ui_lookup = defaultdict(PlanUI)
 
+
 def update_plan_ui():
     plan_ui_lookup["sleep"] = PlanUI(
         [
@@ -983,7 +1002,7 @@ def update_plan_ui():
                 SpectrometerWidget(include_center=False),
             ]
         )
-        opa=OpaSelectorWidget()
+        opa = OpaSelectorWidget()
         plan_ui_lookup["run_setpoint"] = PlanUI(
             [
                 MetadataWidget(),
@@ -995,7 +1014,7 @@ def update_plan_ui():
                 SpectrometerWidget(include_center=False),
             ]
         )
-        opa=OpaSelectorWidget()
+        opa = OpaSelectorWidget()
         plan_ui_lookup["run_intensity"] = PlanUI(
             [
                 MetadataWidget(),
@@ -1007,7 +1026,7 @@ def update_plan_ui():
                 SpectrometerWidget(include_center=False),
             ]
         )
-        opa=OpaSelectorWidget()
+        opa = OpaSelectorWidget()
         plan_ui_lookup["run_holistic"] = PlanUI(
             [
                 MetadataWidget(),
@@ -1020,7 +1039,7 @@ def update_plan_ui():
                 SpectrometerWidget(include_center=False),
             ]
         )
-        opa=OpaSelectorWidget()
+        opa = OpaSelectorWidget()
         plan_ui_lookup["motortune"] = PlanUI(
             [
                 MetadataWidget(),
@@ -1033,5 +1052,7 @@ def update_plan_ui():
         )
 
     # TODO: Reload current UI state
+
+
 plans_allowed_updated.connect(update_plan_ui)
 devices_allowed_updated.connect(update_devices)
