@@ -8,15 +8,9 @@ from .. import logging
 
 # Variable name changed for configuring addresses
 try:
-    RM = REManagerAPI(
-        zmq_control_addr=config.get("bluesky", {}).get("re-manager"),
-        zmq_info_addr=config.get("bluesky", {}).get("re-info"),
-    )
+    RM = REManagerAPI(zmq_control_addr=config.get("bluesky", {}).get("re-manager"), zmq_info_addr=config.get("bluesky", {}).get("re-info"))
 except TypeError:
-    RM = REManagerAPI(
-        zmq_server_address=config.get("bluesky", {}).get("re-manager"),
-        zmq_subscribe_addr=config.get("bluesky", {}).get("re-info"),
-    )
+    RM = REManagerAPI(zmq_server_address=config.get("bluesky", {}).get("re-manager"), zmq_subscribe_addr=config.get("bluesky", {}).get("re-info"))
 
 RM.user = "bluesky-cmds"
 RM.user_group = "admin"
@@ -24,7 +18,6 @@ RM.user_group = "admin"
 RM.console_monitor.enable()
 
 root_logger = logging.getLogger("qserver", console=False)
-
 
 class LogThread(QThread):
     levels = {
@@ -60,4 +53,4 @@ log_thread = LogThread()
 
 log_thread.start()
 
-# TODO close down log thread correctly
+#TODO close down log thread correctly

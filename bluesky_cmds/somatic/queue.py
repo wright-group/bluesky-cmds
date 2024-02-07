@@ -36,7 +36,9 @@ class GUI(QtCore.QObject):
         self.interrupt_choice_window = pw.ChoiceWindow(
             "QUEUE INTERRUPTED", button_labels=["RESUME", "STOP AFTER PLAN", "SKIP", "STOP NOW"]
         )
-        self.clear_choice_window = pw.ChoiceWindow("QUEUE CLEAR", button_labels=["no", "YES"])
+        self.clear_choice_window = pw.ChoiceWindow(
+            "QUEUE CLEAR", button_labels=["no", "YES"]
+        )
         self.env_close_choice_window = pw.ChoiceWindow(
             "ENVIRONMENT CLOSE", button_labels=["no", "YES"]
         )
@@ -191,7 +193,7 @@ class GUI(QtCore.QObject):
         vals = presets.get_preset_names()
         if not vals:
             vals = ["No Presets"]
-        self.preset = pc.Combo(allowed_values=vals)
+        self.preset = pc.Combo(allowed_values = vals)
         input_table.add("Preset", self.preset)
         self.append_preset_button = pw.SetButton("Append Preset Plans")
         self.append_preset_button.clicked.connect(self.on_append_preset)
@@ -223,6 +225,7 @@ class GUI(QtCore.QObject):
         if ok:
             presets.append_preset_item(name, item)
         self.update_presets()
+
 
     def create_plan_frame(self):
         frame = QtWidgets.QWidget()
@@ -312,11 +315,7 @@ class GUI(QtCore.QObject):
                 RM.environment_close()
         else:
             input_dia = QtWidgets.QInputDialog()
-            response, ok = input_dia.getText(
-                self.parent_widget,
-                "Environment Destroy",
-                "The queue is not idle, and so a graceful environment close is not possible.\nIf you would like to destroy the environment anyway, type 'destroy':\n",
-            )
+            response, ok = input_dia.getText(self.parent_widget, "Environment Destroy", "The queue is not idle, and so a graceful environment close is not possible.\nIf you would like to destroy the environment anyway, type 'destroy':\n")
             if response.lower() == "destroy":
                 RM.environment_destroy()
 
@@ -387,14 +386,10 @@ class GUI(QtCore.QObject):
             label.setDisabled(True)
             container.setContextMenuPolicy(QtCore.Qt.ActionsContextMenu)
             copyJsonAction = QtWidgets.QAction("Copy JSON", container)
-            copyJsonAction.triggered.connect(
-                functools.partial(copy_info, info=pprint.pformat(item))
-            )
+            copyJsonAction.triggered.connect(functools.partial(copy_info, info=pprint.pformat(item)))
             container.addAction(copyJsonAction)
             copyItemUidAction = QtWidgets.QAction("Copy Item UID", container)
-            copyItemUidAction.triggered.connect(
-                functools.partial(copy_info, info=item["item_uid"])
-            )
+            copyItemUidAction.triggered.connect(functools.partial(copy_info, info=item["item_uid"]))
             container.addAction(copyItemUidAction)
             label.setParent(container)
             self.table.setCellWidget(table_index, 3, container)
@@ -403,15 +398,11 @@ class GUI(QtCore.QObject):
                 # TODO: account for multiple runs, currently nothing we use actually does multiple runs
                 # So I'm ignoring the possibility (wasn't trivial to get it to work -- KFS 2022-06-16
                 copyRunIdAction = QtWidgets.QAction("Copy Run UID", container)
-                copyRunIdAction.triggered.connect(
-                    functools.partial(copy_info, info=item["result"]["run_uids"][0])
-                )
+                copyRunIdAction.triggered.connect(functools.partial(copy_info, info=item["result"]["run_uids"][0]))
                 container.addAction(copyRunIdAction)
 
             appendPresetAction = QtWidgets.QAction("Append to preset...", container)
-            appendPresetAction.triggered.connect(
-                functools.partial(self.show_preset_dialog, item=item)
-            )
+            appendPresetAction.triggered.connect(functools.partial(self.show_preset_dialog, item=item))
             container.addAction(appendPresetAction)
 
             # remove

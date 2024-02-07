@@ -4,7 +4,6 @@ from qtpy import QtWidgets
 from .._main_window import app
 from .colors import colors
 
-
 def set_style():
 
     # Style Sheet----------------------------------------------------------------

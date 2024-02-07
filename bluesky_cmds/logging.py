@@ -24,14 +24,12 @@ CRITICAL = logging.CRITICAL
 
 logger_color_cycle = itertools.cycle(list(colors.values())[:10])
 
-
 #
 # Signals need to be contained in a QObject or subclass in order to be correctly
 # initialized.
 #
 class Signaller(QtCore.QObject):
     signal = QtCore.Signal(str, logging.LogRecord)
-
 
 class QtHandler(logging.Handler):
     def __init__(self, slotfunc, *args, **kwargs):
@@ -42,7 +40,6 @@ class QtHandler(logging.Handler):
     def emit(self, record):
         s = self.format(record)
         self.signaller.signal.emit(s, record)
-
 
 #
 # Implement a simple UI for this cookbook example. This contains:
@@ -68,15 +65,13 @@ class LogWidget(QtWidgets.QWidget):
         self.app = app
         self.textedit = te = QtWidgets.QPlainTextEdit(self)
         # Set whatever the default monospace font is for the platform
-        te.setStyleSheet(
-            f"QPlainTextEdit{{background-color: {colors['background']}; color: {colors['text_light']};}}"
-        )
-        f = QtGui.QFont("nosuchfont")
+        te.setStyleSheet(f"QPlainTextEdit{{background-color: {colors['background']}; color: {colors['text_light']};}}")
+        f = QtGui.QFont('nosuchfont')
         f.setStyleHint(f.Monospace)
         te.setFont(f)
         te.setReadOnly(True)
         PB = QtWidgets.QPushButton
-        self.clear_button = PB("Clear log window", self)
+        self.clear_button = PB('Clear log window', self)
 
         # Lay out all the widgets
         layout = QtWidgets.QVBoxLayout(self)
@@ -90,14 +85,13 @@ class LogWidget(QtWidgets.QWidget):
     # that's where the slots are set up
 
     def update_status(self, status, record):
-        level_color = self.COLORS.get(record.levelno, "white")
+        level_color = self.COLORS.get(record.levelno, 'white')
         logger_color = self.LOGGER_COLORS[record.name]
         s = f'<pre><font color="{level_color}">{record.levelname:10}</font><font color="{logger_color}">{record.name}:  </font>{status}</pre>'
         self.textedit.appendHtml(s)
 
     def clear_display(self):
         self.textedit.clear()
-
 
 log_widget = LogWidget(app)
 

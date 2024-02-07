@@ -17,7 +17,6 @@ class SimpleGlobal:
 ### other globals #############################################################
 # alphabetical
 
-
 class progress_bar:
     def __init__(self):
         self.value = None
@@ -51,13 +50,10 @@ class progress_bar:
 
     def set_color(self, color):
         from .colors import colors
-
-        self.value.setStyleSheet(
-            f"""
+        self.value.setStyleSheet(f"""
         QProgressBar:horizontal{{border: 0px solid gray; border-radius: 0px; background: {colors["background"]}; padding: 0px; height: 30px;}}
         QProgressBar:chunk{{background:{colors[color]} }}
-        """
-        )
+        """)
 
 
 progress_bar = progress_bar()
@@ -81,6 +77,5 @@ class shutdown(SimpleGlobal):
     def fire(self):
         for method in self.methods:
             method()
-
 
 shutdown = shutdown()
