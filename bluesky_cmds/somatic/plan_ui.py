@@ -12,6 +12,12 @@ from bluesky_hwproxy import zmq_single_request as hwproxy_request
 import WrightTools as wt
 from bluesky_cmds.project import widgets as pw
 from bluesky_cmds.project import classes as pc
+from bluesky_cmds.__main__ import config
+
+try:
+    __users__ = config["meta"]["users"]
+except KeyError:
+    __users__ = []
 
 
 def get_all_components(k, v):
@@ -136,27 +142,7 @@ class MetadataWidget:
         self.fields = {
             "Name": pc.String(),
             "Info": pc.String(),
-            "Experimentor": pc.Combo(
-                ["unspecified"]
-                + list(
-                    sorted(
-                        [
-                            "Kyle",
-                            "Emily",
-                            "Kelson",
-                            "Dan",
-                            "Kent",
-                            "Peter",
-                            "Ryan",
-                            "Jason",
-                            "David",
-                            "John",
-                            "Chris",
-                            "James",
-                        ]
-                    )
-                )
-            ),
+            "Experimentor": pc.Combo(["unspecified"] + list(sorted(__users__))),
         }
 
     @property
