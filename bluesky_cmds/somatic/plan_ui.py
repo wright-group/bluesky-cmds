@@ -14,8 +14,10 @@ from bluesky_cmds.project import widgets as pw
 from bluesky_cmds.project import classes as pc
 from bluesky_cmds.__main__ import config
 
-
-__users__ = config["meta"]["users"]
+try:
+    __users__ = config["meta"]["users"]
+except KeyError:
+    __users__ = []
 
 
 def get_all_components(k, v):
