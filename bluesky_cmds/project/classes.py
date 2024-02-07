@@ -410,9 +410,7 @@ class Number(PyCMDS_Object):
         self.units_widget.addItems(unit_types)
         self.units_widget.setCurrentIndex(unit_types.index(self.units))
         # associate update with conversion
-        self.units_widget.currentIndexChanged.connect(
-            self.unit_change_handler
-        )
+        self.units_widget.currentIndexChanged.connect(self.unit_change_handler)
         # finish
         self.units_widget.setDisabled(self.disabled_units)
 

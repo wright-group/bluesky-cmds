@@ -558,7 +558,7 @@ class MvAxis(pw.InputTable):
 
     def update_hardware(self):
         self.set_unit()
-        self.position.write(0.)
+        self.position.write(0.0)
 
     def set_unit(self):
         self.native = get_units(self.hardware.read())
