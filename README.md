@@ -44,8 +44,13 @@ This will open a [toml](https://toml.io/) file which you must format as follows:
 
 ```
 [bluesky]
-re-manager = "localhost:60615"
+re-manager = "tcp://localhost:60615"
+re-info = "tcp://localhost:60625"
+hwproxy = "tcp://localhost:60620"
 zmq-proxy = "localhost:5568"
+
+[meta]
+users = ["Alice", "Bob"]  # available user names
 ```
 
 The default values are shown above.
