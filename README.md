@@ -28,9 +28,10 @@ $ flit install -s
 
 ## configuration
 
-bluesky-cmds requires access to two ports:
-- bluesky re-manager
+bluesky-cmds requires access to four ports:
+- bluesky re-manager (2 ports)
 - bluesky zmq proxy
+- hwproxy
 
 By default, bluesky-cmds uses the default ports on localhost.
 This works for most applications.
