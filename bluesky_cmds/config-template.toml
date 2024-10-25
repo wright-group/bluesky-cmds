@@ -1,6 +1,8 @@
 [bluesky]
 re-manager = "tcp://localhost:60615"
+re-info = "tcp://localhost:60625"
+hwproxy = "tcp://localhost:60620"
 zmq-proxy = "localhost:5568"
 
 [meta]
-users = ["Kelson", "Dan", "Kent", "Ryan", "Jason", "David", "John", "James", "Jeswin"]
+users = ["Kelson", "Dan", "Kent", "Ryan", "David", "John", "James", "Jeswin"]
