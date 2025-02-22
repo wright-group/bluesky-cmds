@@ -21,6 +21,8 @@ from bluesky_cmds._main_window import window
 
 from .logging import getLogger
 
+from .user_callbacks import UserCallbacks
+
 logger = getLogger("plot")
 
 
@@ -228,6 +230,7 @@ class PlotCallback(CallbackBase):
             self.dimensions = ["time"]
             self.all_dimensions = ["time"]
         gui.axis.set_allowed_values(self.dimensions)
+        UserCallbacks.start(self,doc)
 
         if self.start_doc.get("shape"):
             self.shape = self.start_doc["shape"]
@@ -268,6 +271,7 @@ class PlotCallback(CallbackBase):
                 if field not in self.all_dimensions:
                     self.channels.append(field)
         gui.channel.set_allowed_values(self.channels)
+        UserCallbacks.descriptor(self,doc)
 
     def event(self, doc):
         if doc["descriptor"] != self.descriptor_doc["uid"]:
@@ -282,13 +286,14 @@ class PlotCallback(CallbackBase):
         gui.idx_string.write(str(index))
 
         somatic.signals.update_plot.emit()
+        UserCallbacks.event(self,doc)
 
     def stop(self, doc):
         super().stop(doc)
         logger.info(doc)
         if doc["exit_status"] != "success":
             self.progress_bar.set_color("stop")
-
+        UserCallbacks.stop(self,doc)
 
 # TODO config rather than hardcode address
 dispatcher = RemoteDispatcher(config.get("bluesky", {}).get("zmq-proxy", "localhost:5568"))
