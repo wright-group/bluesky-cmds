@@ -9,6 +9,8 @@
 # updated, which might take time
 
 # import modules here as needed.  Examples include : time, WrightTools, yaqc
+# one should incorporate a logger to test and report on the methods' success at launch of
+# bluesky_cmds, as well as point out they are active
 
 class UserCallbacks():
     def start(self, doc):
