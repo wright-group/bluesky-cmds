@@ -4,6 +4,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/).
 
 ## [Unreleased]
 
+### Added
+- user callbacks based off the plot updates.  It uses a similar architecture as the Bluesky Callbacks but allows
+  for an init callback as well as the typical Bluesky callbacks. User can make adjustments to an instrument
+  until proceeding to the next data point, for example.
+
 ### Changed
 - The selectable users in the plan form are no longer hard-coded; contol users in the config file.
 
