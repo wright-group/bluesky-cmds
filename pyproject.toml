@@ -13,10 +13,10 @@ classifiers = ["License :: OSI Approved :: MIT License"]
 requires-python = ">=3.7"
 requires = [
 	"appdirs",
-	"bluesky-queueserver-api=0.0.10",
- 	"bluesky-queueserver=0.0.19",
-  	"bluesky-widgets=0.0.15",
-   	"bluesky-hwproxy=2022.8.0",
+	"bluesky-queueserver-api==0.0.10",
+ 	"bluesky-queueserver==0.0.19",
+ 	"bluesky-widgets==0.0.15",
+ 	"bluesky-hwproxy==2022.8.0",
 	"click",
 	"pyqtgraph",
 	"pyside2",

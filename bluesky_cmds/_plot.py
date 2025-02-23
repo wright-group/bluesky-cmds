@@ -209,7 +209,7 @@ class PlotCallback(CallbackBase):
         self.units_map = {}
         self.slice_size = 2**64
         self.progress_bar = g.progress_bar
-        UserCallbacks.start(self)
+        UserCallbacks.init(self)
 
     def start(self, doc):
         logger.info(doc)
