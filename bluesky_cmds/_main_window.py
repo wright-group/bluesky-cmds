@@ -6,7 +6,6 @@ from qtpy import QtWidgets, QtCore
 
 import pathlib
 
-
 #### import ###################################################################
 # BEWARE OF CHANGING ORDER OF IMPORTS!!!!!!!!!
 
@@ -16,11 +15,9 @@ from .project.colors import colors
 from .project import widgets as pw
 from .logging import getLogger, log_widget
 
-
 ### version information #######################################################
 
 from .__version__ import __version__
-
 
 ### main window ###############################################################
 window = None

@@ -11,7 +11,6 @@ from . import project_globals as g
 
 import WrightTools.units as wt_units
 
-
 ### gui items #################################################################
 
 
