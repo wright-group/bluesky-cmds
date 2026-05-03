@@ -5,4 +5,4 @@ hwproxy = "tcp://localhost:60620"
 zmq-proxy = "localhost:5568"
 
 [meta]
-users = ["Kelson", "Dan", "Kent", "Ryan", "David", "John", "James", "Jeswin"]
+users = ["Dan", "James", "Jeswin", "Sara", "Jin Group"]
