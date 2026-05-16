@@ -278,7 +278,7 @@ class PlotCallback(CallbackBase):
         self.events.append(doc)
         index = doc["seq_num"] - 1
         if self.shape and index:
-            index = np.unravel_index(index, self.shape)
+            index = [x.item() for x in np.unravel_index(index, self.shape)]
         gui.idx_string.write(str(index))
 
         somatic.signals.update_plot.emit()
